@@ -105,9 +105,16 @@ namespace sat_solver {
         Formula &operator=(const Formula &) = default;
         Formula &operator=(Formula &&) = default;
 
-        std::size_t NumOfClauses() const;
+        inline std::size_t NumOfClauses() const {
+            return this->clauses.size();
+        }
+
         Literal::Int NumOfVariables() const;
-        const ClauseView &At(std::size_t) const;
+        const ClauseView &At(std::size_t index) const;
+
+        inline const ClauseView &operator[](std::size_t index) const {
+            return *this->clauses[index];
+        }
 
         IteratorType begin() const;
         IteratorType end() const;

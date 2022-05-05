@@ -6,10 +6,6 @@ namespace sat_solver {
     Formula::Formula(ClauseContainer &clause_container)
         : clause_container{std::addressof(clause_container)} {}
 
-    std::size_t Formula::NumOfClauses() const {
-        return this->clauses.size();
-    }
-
     Literal::Int Formula::NumOfVariables() const {
         auto it = std::max_element(this->begin(), this->end(), [](const auto &c1, const auto &c2) {
             return c1.NumOfVariables() < c2.NumOfVariables();
@@ -20,11 +16,7 @@ namespace sat_solver {
             return Literal::Terminator;
         }
     }
-
-    const ClauseView &Formula::At(std::size_t index) const {
-        return *this->clauses.at(index);
-    }
-
+    
     Formula::IteratorType Formula::begin() const {
         return IteratorType{this->clauses.begin()};
     }

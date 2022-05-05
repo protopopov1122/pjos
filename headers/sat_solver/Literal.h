@@ -3,6 +3,7 @@
 
 #include "sat_solver/Base.h"
 #include <cinttypes>
+#include <cstdlib>
 #include <functional>
 
 namespace sat_solver {
@@ -26,14 +27,31 @@ namespace sat_solver {
         Literal &operator=(const Literal &) = default;
         Literal &operator=(Literal &&) = default;
 
-        Int Get() const;
-        Int Variable() const;
-        LiteralPolarity Polarity() const;
+        inline Int Get() const {
+            return this->literal;
+        }
 
-        explicit operator Int() const;
+        inline Int Variable() const {
+            return std::abs(this->literal);
+        }
 
-        bool operator==(const Literal &) const;
-        bool operator!=(const Literal &) const;
+        inline LiteralPolarity Polarity() const {
+            return this->literal < 0
+                ? LiteralPolarity::Negative
+                : LiteralPolarity::Positive;
+        }
+
+        inline explicit operator Int() const {
+            return this->literal;
+        }
+
+        inline bool operator==(const Literal &other) const {
+            return this->literal == other.literal;
+        }
+
+        inline bool operator!=(const Literal &other) const {
+            return this->literal != other.literal;
+        }
 
         friend void swap(Literal &, Literal &);
 
@@ -46,12 +64,16 @@ namespace sat_solver {
 
 template <>
 struct std::hash<sat_solver::Literal> {
-    std::size_t operator()(const sat_solver::Literal &) const noexcept;
+    std::size_t operator()(const sat_solver::Literal &l) const noexcept {
+        return static_cast<std::size_t>(l.Get());
+    }
 };
 
 template <>
 struct std::less<sat_solver::Literal> {
-    bool operator()(const sat_solver::Literal &, const sat_solver::Literal &) const noexcept;
+    bool operator()(const sat_solver::Literal &l1, const sat_solver::Literal &l2) const noexcept {
+        return l1.Variable() < l2.Variable() || (l1.Variable() == l2.Variable() && l1.Get() < l2.Get());
+    }
 };
 
 #endif

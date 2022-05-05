@@ -20,13 +20,28 @@ namespace sat_solver {
 
         bool HasVariable(Literal::Int) const;
         bool HasLiteral(Literal) const;
-        std::size_t Length() const;
-        Literal::Int NumOfVariables() const;
+        
+        inline std::size_t Length() const {
+           return this->clause_length;
+        }
+
+        inline Literal::Int NumOfVariables() const {
+           return this->num_of_variables;
+        }
 
         Literal At(std::size_t) const;
 
-        const Literal *begin() const;
-        const Literal *end() const;
+        inline Literal operator[](std::size_t index) const {
+           return this->clause[index];
+        }
+
+        inline const Literal *begin() const {
+           return this->clause;
+        }
+
+        inline const Literal *end() const {
+           return this->clause + this->clause_length;
+        }
     
         friend void swap(ClauseView &, ClauseView &);
 
@@ -48,7 +63,9 @@ namespace sat_solver {
         Clause &operator=(const Clause &);
         Clause &operator=(Clause &&) = default;
 
-        ClauseView View() const;
+        inline const ClauseView &View() const {
+           return *this;
+        }
 
         friend void swap(Clause &, Clause &);
         friend class ClauseBuilder;

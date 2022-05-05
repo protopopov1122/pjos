@@ -4,27 +4,19 @@
 
 namespace sat_solver {
 
+    static bool var_comparator(const Literal &l1, const Literal &l2) {
+        return l1.Variable() < l2.Variable();
+    }
+
     ClauseView::ClauseView(const Literal *clause, std::size_t clause_length, Literal::Int num_of_variables)
         : clause{clause}, clause_length{clause_length}, num_of_variables{num_of_variables} {}
 
     bool ClauseView::HasVariable(Literal::Int var) const {
-        auto it = std::find_if(this->begin(), this->end(), [var](const auto &literal) {
-            return literal.Variable() == var;
-        });
-        return it != this->end();
+        return std::binary_search(this->begin(), this->end(), var, var_comparator);
     }
 
     bool ClauseView::HasLiteral(Literal literal) const {
-        auto it = std::find(this->begin(), this->end(), literal);
-        return it != this->end();
-    }
-
-    std::size_t ClauseView::Length() const {
-        return this->clause_length;
-    }
-
-    Literal::Int ClauseView::NumOfVariables() const {
-        return this->num_of_variables;
+        return std::binary_search(this->begin(), this->end(), literal, std::less<Literal>{});
     }
 
     Literal ClauseView::At(std::size_t index) const {
@@ -33,14 +25,6 @@ namespace sat_solver {
         } else {
             throw SatError{SatErrorCode::OutOfBounds, "Requested literal index is out of bounds"};
         }
-    }
-
-    const Literal *ClauseView::begin() const {
-        return this->clause;
-    }
-    
-    const Literal *ClauseView::end() const {
-        return this->clause + this->clause_length;
     }
 
     void swap(ClauseView &c1, ClauseView &c2) {
@@ -66,10 +50,6 @@ namespace sat_solver {
         this->clause_length = other.clause_length;
         this->num_of_variables = other.num_of_variables;
         std::copy_n(other.begin(), this->clause_length, this->clause.get());
-        return *this;
-    }
-
-    ClauseView Clause::View() const {
         return *this;
     }
 

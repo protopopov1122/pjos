@@ -79,18 +79,6 @@ namespace sat_solver {
         return *this;
     }
 
-    const ClauseView &ClauseRef::Get() const {
-        return this->clause;
-    }
-
-    const ClauseView &ClauseRef::operator*() const {
-        return this->clause;
-    }
-
-    const ClauseView *ClauseRef::operator->() const {
-        return std::addressof(this->clause);
-    }
-
     void swap(ClauseRef &ref1, ClauseRef &ref2) {
         std::swap(ref1.container, ref2.container);
         std::swap(ref1.clause_id, ref2.clause_id);

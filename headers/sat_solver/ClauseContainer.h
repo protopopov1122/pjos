@@ -33,7 +33,7 @@ namespace sat_solver {
         void UseClause(ClauseID);
         void UnuseClause(ClauseID);
 
-        std::unordered_map<ClauseID, Entry> clauses; // TODO Locking
+        std::unordered_map<ClauseID, Entry> clauses;
         ClauseID next_id{0};
     };
 
@@ -48,9 +48,17 @@ namespace sat_solver {
         ClauseRef &operator=(const ClauseRef &);
         ClauseRef &operator=(ClauseRef &&);
 
-        const ClauseView &Get() const;
-        const ClauseView &operator*() const;
-        const ClauseView *operator->() const;
+        inline const ClauseView &Get() const {
+            return this->clause;
+        }
+
+        inline const ClauseView &operator*() const {
+            return this->clause;
+        }
+
+        inline const ClauseView *operator->() const {
+            return std::addressof(this->clause);
+        }
 
         friend void swap(ClauseRef &, ClauseRef &);
         friend class ClauseContainer;
