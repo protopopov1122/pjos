@@ -5,6 +5,7 @@ if meson.get_compiler('cpp').get_id() == 'gcc' or meson.get_compiler('cpp').get_
 endif
 
 sat_solver_source = [
+  'source/Assignment.cpp',
   'source/Clause.cpp',
   'source/ClauseContainer.cpp',
   'source/Dimacs.cpp',

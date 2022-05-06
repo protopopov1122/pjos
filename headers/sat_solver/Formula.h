@@ -109,7 +109,10 @@ namespace sat_solver {
             return this->clauses.size();
         }
 
-        Literal::Int NumOfVariables() const;
+        inline Literal::Int NumOfVariables() const {
+            return this->num_of_variables;
+        }
+
         const ClauseView &At(std::size_t index) const;
 
         inline const ClauseView &operator[](std::size_t index) const {

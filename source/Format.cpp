@@ -17,11 +17,24 @@ namespace sat_solver {
         }
 
         std::ostream &operator<<(std::ostream &os, const FormulaFormatter &state) {
-            os << "p cnf " << state.state.NumOfVariables() << " " << state.state.NumOfClauses() << std::endl;
-            for (auto it = state.state.begin(); it != state.state.end(); it = std::next(it)) {
+            os << "p cnf " << state.formula.NumOfVariables() << " " << state.formula.NumOfClauses() << std::endl;
+            for (auto it = state.formula.begin(); it != state.formula.end(); it = std::next(it)) {
                 os << Format(*it);
-                if (std::next(it) != state.state.end()) {
+                if (std::next(it) != state.formula.end()) {
                     os << std::endl;
+                }
+            }
+            return os;
+        }
+
+        std::ostream &operator<<(std::ostream &os, const AssignmentFormatter &assn) {
+            for (auto it = assn.assignment.begin(); it != assn.assignment.end(); it = std::next(it)) {
+                auto [variable, assignment] = *it;
+                if (assignment != VariableAssignment::Unassigned) {
+                    os << (assignment == VariableAssignment::Negative ? -1 : 1) * variable;
+                    if (std::next(it) != assn.assignment.end()) {
+                        os << ' ';
+                    }
                 }
             }
             return os;
@@ -38,5 +51,9 @@ namespace sat_solver {
 
     internal::FormulaFormatter Format(const Formula &state) {
         return {state};
+    }
+
+    internal::AssignmentFormatter Format(const Assignment &assn) {
+        return {assn};
     }
 }
