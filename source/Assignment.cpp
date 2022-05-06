@@ -4,7 +4,7 @@
 namespace sat_solver {
 
     Assignment::Assignment(std::size_t num_of_variables)
-        : assignment{num_of_variables, VariableAssignment::Unassigned}, num_of_unassigned{num_of_variables} {}
+        : assignment{num_of_variables, VariableAssignment::Unassigned} {}
 
     Assignment::IteratorType Assignment::begin() const {
         return IteratorType{this->assignment.begin(), 1};
@@ -16,7 +16,6 @@ namespace sat_solver {
 
     Assignment &Assignment::Reset() {
         std::fill(this->assignment.begin(), this->assignment.end(), VariableAssignment::Unassigned);
-        this->num_of_unassigned = this->assignment.size();
         return *this;
     }
 }

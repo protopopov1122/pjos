@@ -7,12 +7,6 @@
 
 namespace sat_solver {
 
-    enum class VariableAssignment {
-        Unassigned,
-        Positive,
-        Negative
-    };
-
     namespace internal {
         
         template <typename I>
@@ -119,18 +113,6 @@ namespace sat_solver {
             return this->assignment.size();
         }
 
-        inline std::size_t NumOfUnassigned() const {
-            return this->num_of_unassigned;
-        }
-
-        inline bool Empty() const {
-            return this->NumOfVariables() == this->NumOfUnassigned();
-        }
-
-        inline bool Complete() const {
-            return this->NumOfUnassigned() == 0;
-        }
-
         inline VariableAssignment Of(std::size_t index) const {
             return this->assignment.at(index - 1);
         }
@@ -151,7 +133,6 @@ namespace sat_solver {
 
      private:
         std::vector<VariableAssignment> assignment;
-        std::size_t num_of_unassigned;
     };
 }
 

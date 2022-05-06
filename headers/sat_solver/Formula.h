@@ -109,6 +109,10 @@ namespace sat_solver {
             return this->clauses.size();
         }
 
+        inline bool Empty() const {
+           return this->clauses.empty();
+        }
+
         inline Literal::Int NumOfVariables() const {
             return this->num_of_variables;
         }

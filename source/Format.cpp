@@ -31,11 +31,24 @@ namespace sat_solver {
             for (auto it = assn.assignment.begin(); it != assn.assignment.end(); it = std::next(it)) {
                 auto [variable, assignment] = *it;
                 if (assignment != VariableAssignment::Unassigned) {
-                    os << (assignment == VariableAssignment::Negative ? -1 : 1) * variable;
+                    os << (assignment == VariableAssignment::False ? -1 : 1) * variable;
                     if (std::next(it) != assn.assignment.end()) {
                         os << ' ';
                     }
                 }
+            }
+            return os;
+        }
+
+        std::ostream &operator<<(std::ostream &os, const SolverStatusFormatter &status) {
+            switch (status.status) {
+                case SolverStatus::Satisfiable:
+                    os << "SAT";
+                    break;
+
+                case SolverStatus::Unsatisfiable:
+                    os << "UNSAT";
+                    break;
             }
             return os;
         }
@@ -55,5 +68,9 @@ namespace sat_solver {
 
     internal::AssignmentFormatter Format(const Assignment &assn) {
         return {assn};
+    }
+
+    internal::SolverStatusFormatter Format(SolverStatus status) {
+        return {status};
     }
 }

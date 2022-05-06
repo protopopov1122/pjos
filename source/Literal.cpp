@@ -11,6 +11,25 @@ namespace sat_solver {
         }
     }
 
+    Literal::Literal(Int literal, VariableAssignment assn) {
+        if (literal == Literal::Terminator) {
+            throw SatError{SatErrorCode::InvalidParameter, "Literal cannot be zero"};
+        }
+        switch (assn) {
+            case VariableAssignment::True:
+                this->literal = std::abs(literal);
+                break;
+
+            case VariableAssignment::False:
+                this->literal = -1 * std::abs(literal);
+                break;
+
+            case VariableAssignment::Unassigned:
+                this->literal = literal;
+                break;
+        }
+    }
+
     void swap(Literal &l1, Literal &l2) {
         std::swap(l1.literal, l2.literal);
     }

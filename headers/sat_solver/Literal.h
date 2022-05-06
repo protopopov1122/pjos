@@ -1,17 +1,28 @@
 #ifndef SAT_SOLVER_LITERAL_H_
 #define SAT_SOLVER_LITERAL_H_
 
-#include "sat_solver/Base.h"
+#include "sat_solver/Core.h"
 #include <cinttypes>
 #include <cstdlib>
 #include <functional>
+#include <utility>
 
 namespace sat_solver {
 
-    enum class LiteralPolarity {
-        Positive,
-        Negative
-    };
+    inline constexpr VariableAssignment FlipVariableAssignment(VariableAssignment assn) {
+        switch (assn) {            
+            case VariableAssignment::False:
+                return VariableAssignment::True;
+
+            case VariableAssignment::True:
+                return VariableAssignment::False;
+
+            case VariableAssignment::Unassigned:
+                // Intentionally left blank
+                break;
+        }
+        return VariableAssignment::Unassigned;
+    }
 
     class Literal {
      public:
@@ -19,6 +30,7 @@ namespace sat_solver {
 
         Literal() = default;
         Literal(Int);
+        Literal(Int, VariableAssignment);
         Literal(const Literal &) = default;
         Literal(Literal &&) = default;
 
@@ -39,6 +51,18 @@ namespace sat_solver {
             return this->literal < 0
                 ? LiteralPolarity::Negative
                 : LiteralPolarity::Positive;
+        }
+
+        inline std::pair<Int, VariableAssignment> Assignment() const {
+            return std::make_pair(this->Variable(), this->literal < 0
+                ? VariableAssignment::False
+                : VariableAssignment::True);
+        }
+
+        inline bool Eval(VariableAssignment assn) const {
+            const auto polarity = this->Polarity();
+            return (polarity == LiteralPolarity::Positive && assn == VariableAssignment::True) ||
+                   (polarity == LiteralPolarity::Negative && assn == VariableAssignment::False);
         }
 
         inline explicit operator Int() const {
