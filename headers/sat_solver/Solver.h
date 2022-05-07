@@ -29,7 +29,7 @@ namespace sat_solver {
             std::unordered_map<Literal::Int, VariableIndexEntry> variable_index{};
             std::vector<Watcher> watchers{};
             Assignment assignment;
-            DecisionTrail trail;
+            DecisionTrail trail{};
         };
     }
 

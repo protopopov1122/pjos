@@ -47,12 +47,6 @@ namespace sat_solver {
             return std::abs(this->literal);
         }
 
-        inline LiteralPolarity Polarity() const {
-            return this->literal < 0
-                ? LiteralPolarity::Negative
-                : LiteralPolarity::Positive;
-        }
-
         inline std::pair<Int, VariableAssignment> Assignment() const {
             return std::make_pair(this->Variable(), this->literal < 0
                 ? VariableAssignment::False
@@ -60,9 +54,8 @@ namespace sat_solver {
         }
 
         inline bool Eval(VariableAssignment assn) const {
-            const auto polarity = this->Polarity();
-            return (polarity == LiteralPolarity::Positive && assn == VariableAssignment::True) ||
-                   (polarity == LiteralPolarity::Negative && assn == VariableAssignment::False);
+            return (this->literal > 0 && assn == VariableAssignment::True) ||
+                   (this->literal < 0 && assn == VariableAssignment::False);
         }
 
         inline explicit operator Int() const {

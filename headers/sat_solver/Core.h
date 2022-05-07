@@ -5,11 +5,6 @@
 
 namespace sat_solver {
 
-    enum class LiteralPolarity {
-        Negative = -1,
-        Positive = 1
-    };
-
     enum class VariableAssignment {
         Unassigned = 100,
         False = 0,
@@ -17,8 +12,8 @@ namespace sat_solver {
     };
 
     enum class SolverStatus {
-        Unsatisfiable,
-        Satisfiable
+        Unsatisfied,
+        Satisfied
     };
 }
 

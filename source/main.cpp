@@ -24,7 +24,7 @@ int main(int argc, const char **argv) {
     auto status = solver.Solve();
     std::cerr << Format(status) << std::endl;
 
-    if (status == SolverStatus::Satisfiable) {
+    if (status == SolverStatus::Satisfied) {
         Formula constrained_formula{formula};
         for (auto [variable, assignment] : solver.GetAssignment()) {
             formula.AppendClause(ClauseBuilder{}.Add(Literal{variable, assignment}).Make());

@@ -19,6 +19,15 @@ namespace sat_solver {
         return std::binary_search(this->begin(), this->end(), literal, std::less<Literal>{});
     }
 
+    std::int64_t ClauseView::FindLiteral(Literal literal) const {
+        auto it = std::find(this->begin(), this->end(), literal);
+        if (it != this->end()) {
+            return it - this->begin();
+        } else {
+            return -1;
+        }
+    }
+
     Literal ClauseView::At(std::size_t index) const {
         if (index < this->clause_length) {
             return this->clause[index];

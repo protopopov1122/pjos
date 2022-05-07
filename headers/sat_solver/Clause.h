@@ -20,6 +20,7 @@ namespace sat_solver {
 
         bool HasVariable(Literal::Int) const;
         bool HasLiteral(Literal) const;
+        std::int64_t FindLiteral(Literal) const;
         
         inline std::size_t Length() const {
            return this->clause_length;

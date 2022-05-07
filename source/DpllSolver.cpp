@@ -5,7 +5,7 @@
 namespace sat_solver {
 
     internal::SolverState::SolverState(const Formula &formula)
-        : formula{formula}, assignment{static_cast<std::size_t>(formula.NumOfVariables())}, trail{assignment, [this](auto var, auto assn) {this->Assign(var, assn);}} {
+        : formula{formula}, assignment{static_cast<std::size_t>(formula.NumOfVariables())} {
         
         this->Rebuild();
     }
@@ -26,7 +26,7 @@ namespace sat_solver {
                 }
 
                 auto &index_entry = index_it->second;
-                if (literal.Polarity() == LiteralPolarity::Positive) {
+                if (literal.Assignment().second == VariableAssignment::True) {
                     index_entry.positive_clauses.emplace_back(clause_idx);
                 } else {
                     index_entry.negative_clauses.emplace_back(clause_idx);
@@ -37,10 +37,10 @@ namespace sat_solver {
 
     void internal::SolverState::UpdateWatchers(Literal::Int variable) {
         for (auto affected_watcher : this->variable_index[variable].positive_clauses) {
-            this->watchers[affected_watcher].Update(this->assignment);
+            this->watchers[affected_watcher].Update(this->assignment, variable);
         }
         for (auto affected_watcher : this->variable_index[variable].negative_clauses) {
-            this->watchers[affected_watcher].Update(this->assignment);
+            this->watchers[affected_watcher].Update(this->assignment, variable);
         }
     }
 
@@ -56,18 +56,30 @@ namespace sat_solver {
         for (;;) {
             auto bcp_result = this->Bcp();
             if (bcp_result == BcpResult::Sat) {
-                return SolverStatus::Satisfiable;
+                return SolverStatus::Satisfied;
             } else if (bcp_result == BcpResult::Unsat) {
-                auto [variable, assignment] = this->state.trail.UndoDecision();
-                if (variable == Literal::Terminator) {
-                    return SolverStatus::Unsatisfiable;
-                }
-                this->state.trail.Propagation(variable, FlipVariableAssignment(assignment));
+                Literal::Int variable;
+                VariableAssignment assignment;
+                bool undo_decision = true;
+                do {
+                    undo_decision = this->state.trail.Undo(variable, assignment);
+                    if (variable == Literal::Terminator) {
+                        return SolverStatus::Unsatisfied;
+                    }
+                    if (undo_decision) {
+                        this->state.Assign(variable, VariableAssignment::Unassigned);
+                    }
+                } while (undo_decision);
+
+                auto new_assignment = FlipVariableAssignment(assignment);
+                this->state.trail.Propagation(variable, new_assignment);
+                this->state.Assign(variable, new_assignment);
             } else {
                 for (std::int64_t variable = this->state.assignment.NumOfVariables() - 1; variable >= 0; variable--) {
                     auto assn = this->state.assignment.Of(variable);
                     if (assn == VariableAssignment::Unassigned) {
                         this->state.trail.Decision(variable, VariableAssignment::True);
+                        this->state.Assign(variable, VariableAssignment::True);
                         break;
                     }
                 }
@@ -84,13 +96,14 @@ namespace sat_solver {
                 auto &watcher = this->state.watchers[i];
 
                 auto watcher_status = watcher.Status();
-                auto watcher_unit = watcher.GetWatchedLiteralIndices().first;
+                auto watcher_unit = watcher.WatchedLiterals().first;
 
                 all_satisfied = all_satisfied && watcher_status == ClauseStatus::Satisfied;
                 if (watcher_status == ClauseStatus::Unit) {
                     auto [variable, assignment] = this->state.formula[i][watcher_unit].Assignment();
 
                     this->state.trail.Propagation(variable, assignment);
+                    this->state.Assign(variable, assignment);
                     propagate = true;
                 } else if (watcher_status == ClauseStatus::Unsatisfied) {
                     return BcpResult::Unsat;

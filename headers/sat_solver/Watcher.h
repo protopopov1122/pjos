@@ -28,13 +28,16 @@ namespace sat_solver {
             return this->status;
         }
 
-        inline std::pair<std::int64_t, std::int64_t> GetWatchedLiteralIndices() const {
+        inline std::pair<std::int64_t, std::int64_t> WatchedLiterals() const {
             return this->watched_literals;
         }
 
-        void Update(const Assignment &);
+        void Update(const Assignment &, Literal::Int);
 
      private:
+        std::int64_t FindUnassigned(const Assignment &, std::int64_t);
+        bool IsSatisfied(const Assignment &, std::int64_t);
+
         ClauseView clause;
         ClauseStatus status;
         std::pair<std::int64_t, std::int64_t> watched_literals;
