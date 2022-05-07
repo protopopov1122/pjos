@@ -1,20 +1,16 @@
 #include "sat_solver/Watcher.h"
 #include "sat_solver/Error.h"
 #include <algorithm>
-#include <cassert>
 
 namespace sat_solver {
 
     Watcher::Watcher(const ClauseView &clause)
-        : clause{clause}, status{ClauseStatus::Undecided} {
-
-        // Watch the beginning of the clause
-        if (clause.Length() >= 2) {
-            this->watched_literals = std::make_pair(0, 1);
-        } else if (clause.Length() == 1) {
-            this->watched_literals = std::make_pair(0, -1);
-        } else {
-            this->watched_literals = std::make_pair(-1, -1);
+        : clause{clause}, status{ClauseStatus::Undecided}, watched_literals{-1, -1} {
+        if (this->clause.Length() > 0) {
+            this->watched_literals.first = 0;
+        }
+        if (this->clause.Length() > 1) {
+            this->watched_literals.second = 1;
         }
     }
 
@@ -26,57 +22,45 @@ namespace sat_solver {
         if (assigned_variable != Literal::Terminator) { // Watcher is being updated due to new variable assignment
             auto var_assignment = assn.Of(assigned_variable);
             if (var_assignment != VariableAssignment::Unassigned) {
-                auto literal_index = this->clause.FindLiteral(Literal{assigned_variable, var_assignment});
-                if (literal_index != -1) { // Assigned variable satisfied the clause. Watch assigned variable
-                    if (this->watched_literals.first != literal_index) {
-                        this->watched_literals.second = this->watched_literals.first;
-                        this->watched_literals.first = literal_index;
-                    }
-                    this->status = ClauseStatus::Satisfied;
-                    return;
+                auto literal_index = this->clause.FindLiteral(Literal{assigned_variable, var_assignment}); // Look for a literal in a clause that could be satisfied by the new assignment
+                if (literal_index != -1 && this->watched_literals.first != literal_index) { // Assigned variable satisfied the clause. Watch corresponding literal,
+                                                                                            // if it's not already watched
+                    this->watched_literals.second = this->watched_literals.first;
+                    this->watched_literals.first = literal_index;
                 }
             }
         }
 
-        if (this->IsSatisfied(assn, this->watched_literals.first) ||
-            this->IsSatisfied(assn, this->watched_literals.second)) { // One of watched literals satisfies the clause under current assignment
-            this->status = ClauseStatus::Satisfied;
-            return;
-        }
-
-        if (this->watched_literals.second != -1) { // There are two watched literals, none of them satisfied the clause
-            auto literal = this->clause[this->watched_literals.second];
-            auto var_assignment = assn.Of(literal.Variable());
-            if (var_assignment != VariableAssignment::Unassigned) { // The second watched literal was assigned, remove it from watchlist
-                this->watched_literals.second = -1;
-            }
-        }
-
-        if (this->watched_literals.first != -1) { // There is at least one watched literal, it does not satisfy the clause
-            auto literal = this->clause[this->watched_literals.first];
-            auto var_assignment = assn.Of(literal.Variable());
-            if (var_assignment != VariableAssignment::Unassigned) { // The first watched literal was assigned, remove it from watchlist
-                this->watched_literals.first = this->watched_literals.second;
-                this->watched_literals.second = -1;
-            }
-        }
-
-        if (this->watched_literals.first == -1) { // There are no watched literals, try to find a new one
+        if (this->IsUnsatisfied(assn, this->watched_literals.first)) { // If the first watched literal is false, find an unassigned one
             this->watched_literals.first = this->FindUnassigned(assn, -1);
         }
 
-        if (this->watched_literals.first != -1) { // There is at least one unassigned literal
-            this->watched_literals.second = this->FindUnassigned(assn, this->watched_literals.first); // Try to find the second one
-        } else { // No unassigned literals can be found to watch, clause is unsatisfied
-            this->status = ClauseStatus::Unsatisfied;
-            return;
+        if (this->watched_literals.second == this->watched_literals.first ||
+            this->IsUnsatisfied(assn, this->watched_literals.second)) { // If the second watched literal is false, or equal the first, find an unassinged one
+            this->watched_literals.second = this->FindUnassigned(assn, this->watched_literals.first);
         }
 
-        if (this->watched_literals.second != -1) { // There are at least two watched literals, clause is undecided
-            this->status = ClauseStatus::Undecided;
-        } else { // There is only one watched literal, clause is unit
-            this->status = ClauseStatus::Unit;
+        this->UpdateStatus(assn);
+    }
+
+    void Watcher::Rescan(const Assignment &assn) { // Full rescan of the clause
+        this->watched_literals = std::make_pair(-1, -1);
+        for (std::int64_t i = 0; i < static_cast<std::int64_t>(this->clause.Length()); i++) {
+            auto literal = this->clause[i];
+            auto var_assignment = assn.Of(literal.Variable());
+            if (literal.Eval(var_assignment)) {
+                this->watched_literals.second = this->watched_literals.first;
+                this->watched_literals.first = i;
+            } else if (var_assignment == VariableAssignment::Unassigned) {
+                if (this->watched_literals.first == -1) {
+                    this->watched_literals.first = i;
+                } else if (this->watched_literals.second == -1) {
+                    this->watched_literals.second = i;
+                }
+            }
         }
+
+        this->UpdateStatus(assn);
     }
 
     std::int64_t Watcher::FindUnassigned(const Assignment &assn, std::int64_t other) {
@@ -96,5 +80,27 @@ namespace sat_solver {
         auto literal = this->clause[index];
         auto var_assignment = assn.Of(literal.Variable());
         return literal.Eval(var_assignment);
+    }
+
+    bool Watcher::IsUnsatisfied(const Assignment &assn, std::int64_t index) {
+        if (index == -1) {
+            return true;
+        }
+        auto literal = this->clause[index];
+        auto var_assignment = assn.Of(literal.Variable());
+        return var_assignment != VariableAssignment::Unassigned && !literal.Eval(var_assignment);
+    }
+
+    void Watcher::UpdateStatus(const Assignment &assn) {
+        if (this->IsSatisfied(assn, this->watched_literals.first) ||
+            this->IsSatisfied(assn, this->watched_literals.second)) { // One of watched literals satisfies the clause under current assignment
+            this->status = ClauseStatus::Satisfied;
+        } else if (this->watched_literals.second != -1) { // There are two unassigned literals
+            this->status = ClauseStatus::Undecided;
+        } else if (this->watched_literals.first != -1) { // There is one unassigned literal
+            this->status = ClauseStatus::Unit;
+        } else { // There are no unassigned literals
+            this->status = ClauseStatus::Unsatisfied;
+        }
     }
 }

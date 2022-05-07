@@ -33,10 +33,13 @@ namespace sat_solver {
         }
 
         void Update(const Assignment &, Literal::Int);
+        void Rescan(const Assignment &);
 
      private:
         std::int64_t FindUnassigned(const Assignment &, std::int64_t);
         bool IsSatisfied(const Assignment &, std::int64_t);
+        bool IsUnsatisfied(const Assignment &, std::int64_t);
+        void UpdateStatus(const Assignment &);
 
         ClauseView clause;
         ClauseStatus status;
