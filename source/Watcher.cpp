@@ -8,9 +8,13 @@ namespace sat_solver {
         : clause{clause}, status{ClauseStatus::Undecided}, watched_literals{-1, -1} {
         if (this->clause.Length() > 0) {
             this->watched_literals.first = 0;
-        }
-        if (this->clause.Length() > 1) {
-            this->watched_literals.second = 1;
+            if (this->clause.Length() > 1) {
+                this->watched_literals.second = 1;
+            } else {
+                this->status = ClauseStatus::Unit;
+            }
+        } else {
+            this->status = ClauseStatus::Unsatisfied;
         }
     }
 

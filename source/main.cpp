@@ -9,27 +9,28 @@
 using namespace sat_solver;
 
 int main(int argc, const char **argv) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " cnf.dimacs" << std::endl;
-        return EXIT_FAILURE;
-    }
-
     ClauseContainer clauses;
     Formula formula{clauses};
-    std::ifstream input_file{argv[1]};
-    DimacsLoader loader{input_file};
-    loader.LoadInto(formula);
+
+    if (argc > 1) {
+        std::ifstream input_file{argv[1]};
+        DimacsLoader loader{input_file};
+        loader.LoadInto(formula);
+    } else {
+        DimacsLoader loader{std::cin};
+        loader.LoadInto(formula);
+    }
 
     DpllSolver solver(formula);
     auto status = solver.Solve();
     std::cerr << Format(status) << std::endl;
 
     if (status == SolverStatus::Satisfied) {
-        Formula constrained_formula{formula};
+        ClauseBuilder builder{};
         for (auto [variable, assignment] : solver.GetAssignment()) {
-            formula.AppendClause(ClauseBuilder{}.Add(Literal{variable, assignment}).Make());
+            builder.Add(Literal{variable, assignment});
         }
-        std::cout << Format(formula) << std::endl;
+        std::cout << Format(builder.Make()) << std::endl;
     }
     return EXIT_SUCCESS;
 }

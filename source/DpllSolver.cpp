@@ -75,7 +75,7 @@ namespace sat_solver {
                 this->state.trail.Propagation(variable, new_assignment);
                 this->state.Assign(variable, new_assignment);
             } else {
-                for (std::int64_t variable = this->state.assignment.NumOfVariables() - 1; variable >= 0; variable--) {
+                for (std::int64_t variable = this->state.assignment.NumOfVariables(); variable > 0; variable--) {
                     auto assn = this->state.assignment.Of(variable);
                     if (assn == VariableAssignment::Unassigned) {
                         this->state.trail.Decision(variable, VariableAssignment::True);
