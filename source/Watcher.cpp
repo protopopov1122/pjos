@@ -1,6 +1,7 @@
 #include "sat_solver/Watcher.h"
 #include "sat_solver/Error.h"
 #include <algorithm>
+#include <cassert>
 
 namespace sat_solver {
 
@@ -23,7 +24,9 @@ namespace sat_solver {
             throw SatError{SatErrorCode::InvalidParameter, "Provided assignment does not cover all clause literals"};
         }
 
-        if (assigned_variable != Literal::Terminator) { // Watcher is being updated due to new variable assignment
+        this->UpdateStatus(assn); // TODO Optimize state update
+        if (assigned_variable != Literal::Terminator && this->status != ClauseStatus::Satisfied) { // Watcher is being updated due to new variable assignment
+                                                                                                   // which could potentially lead to satisfied clause
             auto var_assignment = assn[assigned_variable];
             if (var_assignment != VariableAssignment::Unassigned) {
                 auto literal_iter = this->clause.FindLiteral(Literal{assigned_variable, var_assignment}); // Look for a literal in a clause that could be satisfied by the new assignment
@@ -48,6 +51,12 @@ namespace sat_solver {
         }
 
         this->UpdateStatus(assn);
+
+#ifndef NDEBUG
+        Watcher clone{*this};
+        clone.Rescan(assn);
+        assert(this->status == clone.status);
+#endif
     }
 
     void Watcher::Rescan(const Assignment &assn) { // Full rescan of the clause
