@@ -3,14 +3,14 @@
 
 namespace sat_solver {
 
-    ClauseRef ClauseContainer::Attach(Clause clause) {
+    SharedClausePtr ClauseContainer::Attach(Clause clause) {
         auto clause_id = this->next_id++;
         auto [it, success] = this->clauses.emplace(clause_id, Entry{std::move(clause), 1});
         if (!success) {
             throw SatError{"Failed to attach clause to container"};
         }
 
-        return ClauseRef{*this, clause_id, it->second.clause};
+        return SharedClausePtr{*this, clause_id, it->second.clause};
     }
 
     void ClauseContainer::UseClause(ClauseID clause_id) {
@@ -32,28 +32,28 @@ namespace sat_solver {
         }
     }
 
-    ClauseRef::ClauseRef(ClauseContainer &container, ClauseContainer::ClauseID clause_id, ClauseView clause)
+    SharedClausePtr::SharedClausePtr(ClauseContainer &container, ClauseContainer::ClauseID clause_id, ClauseView clause)
         : container{std::addressof(container)}, clause_id{clause_id}, clause{std::move(clause)} {}
     
-    ClauseRef::ClauseRef(const ClauseRef &other)
+    SharedClausePtr::SharedClausePtr(const SharedClausePtr &other)
         : container{other.container}, clause_id{other.clause_id}, clause{other.clause} {
         if (this->container != nullptr) {
             this->container->UseClause(this->clause_id);
         }
     }
 
-    ClauseRef::ClauseRef(ClauseRef &&other)
+    SharedClausePtr::SharedClausePtr(SharedClausePtr &&other)
         : container{other.container}, clause_id{other.clause_id}, clause{std::move(other.clause)} {
         other.container = nullptr;
     }
 
-    ClauseRef::~ClauseRef() {
+    SharedClausePtr::~SharedClausePtr() {
         if (this->container != nullptr) {
             this->container->UnuseClause(this->clause_id);
         }
     }
 
-    ClauseRef &ClauseRef::operator=(const ClauseRef &other) {
+    SharedClausePtr &SharedClausePtr::operator=(const SharedClausePtr &other) {
         if (this->container != nullptr) {
             this->container->UnuseClause(this->clause_id);
         }
@@ -67,7 +67,7 @@ namespace sat_solver {
         return *this;
     }
 
-    ClauseRef &ClauseRef::operator=(ClauseRef &&other) {
+    SharedClausePtr &SharedClausePtr::operator=(SharedClausePtr &&other) {
         if (this->container != nullptr) {
             this->container->UnuseClause(this->clause_id);
         }
@@ -79,7 +79,7 @@ namespace sat_solver {
         return *this;
     }
 
-    void swap(ClauseRef &ref1, ClauseRef &ref2) {
+    void swap(SharedClausePtr &ref1, SharedClausePtr &ref2) {
         std::swap(ref1.container, ref2.container);
         std::swap(ref1.clause_id, ref2.clause_id);
         std::swap(ref1.clause, ref2.clause);

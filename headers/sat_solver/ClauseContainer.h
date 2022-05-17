@@ -6,7 +6,7 @@
 
 namespace sat_solver {
 
-    class ClauseRef;
+    class SharedClausePtr;
 
     class ClauseContainer {
         using ClauseID = std::size_t;
@@ -25,9 +25,9 @@ namespace sat_solver {
         ClauseContainer &operator=(const ClauseContainer &) = delete;
         ClauseContainer &operator=(ClauseContainer &&) = delete;
 
-        ClauseRef Attach(Clause);
+        SharedClausePtr Attach(Clause);
 
-        friend class ClauseRef;
+        friend class SharedClausePtr;
      
      private:
         void UseClause(ClauseID);
@@ -37,16 +37,16 @@ namespace sat_solver {
         ClauseID next_id{0};
     };
 
-    class ClauseRef {
+    class SharedClausePtr {
      public:
-        ClauseRef() = delete;
-        ClauseRef(const ClauseRef &);
-        ClauseRef(ClauseRef &&);
+        SharedClausePtr() = delete;
+        SharedClausePtr(const SharedClausePtr &);
+        SharedClausePtr(SharedClausePtr &&);
 
-        ~ClauseRef();
+        ~SharedClausePtr();
 
-        ClauseRef &operator=(const ClauseRef &);
-        ClauseRef &operator=(ClauseRef &&);
+        SharedClausePtr &operator=(const SharedClausePtr &);
+        SharedClausePtr &operator=(SharedClausePtr &&);
 
         inline const ClauseView &Get() const {
             return this->clause;
@@ -60,11 +60,11 @@ namespace sat_solver {
             return std::addressof(this->clause);
         }
 
-        friend void swap(ClauseRef &, ClauseRef &);
+        friend void swap(SharedClausePtr &, SharedClausePtr &);
         friend class ClauseContainer;
 
      private:
-        ClauseRef(ClauseContainer &, ClauseContainer::ClauseID, ClauseView);
+        SharedClausePtr(ClauseContainer &, ClauseContainer::ClauseID, ClauseView);
 
         ClauseContainer *container;
         ClauseContainer::ClauseID clause_id;

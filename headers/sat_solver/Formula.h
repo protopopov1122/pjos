@@ -94,7 +94,7 @@ namespace sat_solver {
 
     class Formula {
      public:
-        using IteratorType = internal::FormulaIterator<std::vector<ClauseRef>::const_iterator>;
+        using IteratorType = internal::FormulaIterator<std::vector<SharedClausePtr>::const_iterator>;
 
         Formula(ClauseContainer &);
         Formula(const Formula &) = default;
@@ -130,7 +130,7 @@ namespace sat_solver {
 
      private:
         ClauseContainer *clause_container;
-        std::vector<ClauseRef> clauses{};
+        std::vector<SharedClausePtr> clauses{};
         Literal::Int num_of_variables{Literal::Terminator};
     };
 
