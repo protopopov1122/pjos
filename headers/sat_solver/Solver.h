@@ -55,6 +55,24 @@ namespace sat_solver {
 
         SolverStatus Solve();
     };
+
+    class CdclSolver : public BaseSolver {
+     public:
+        CdclSolver(const Formula &);
+        CdclSolver(const CdclSolver &) = default;
+        CdclSolver(CdclSolver &&) = default;
+
+        ~CdclSolver() = default;
+
+        CdclSolver &operator=(const CdclSolver &) = default;
+        CdclSolver &operator=(CdclSolver &&) = default;
+
+        inline const Assignment &GetAssignment() const {
+            return this->assignment;
+        }
+
+        SolverStatus Solve();
+    };
 }
 
 #endif
