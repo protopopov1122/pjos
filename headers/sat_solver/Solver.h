@@ -11,29 +11,34 @@
 
 namespace sat_solver {
 
-    namespace internal {
-        
+    class BaseSolver {
+     protected:
         struct VariableIndexEntry {
             std::vector<std::size_t> positive_clauses;
             std::vector<std::size_t> negative_clauses;
         };
 
-        struct SolverState {
-            SolverState(const Formula &);
-
-            void Rebuild();
-            void UpdateWatchers(Literal::Int);
-            void Assign(Literal::Int, VariableAssignment);
-
-            const Formula &formula;
-            std::unordered_map<Literal::Int, VariableIndexEntry> variable_index{};
-            std::vector<Watcher> watchers{};
-            Assignment assignment;
-            DecisionTrail trail{};
+        enum class UnitPropagationResult {
+            Sat,
+            Unsat,
+            Pass
         };
-    }
 
-    class DpllSolver {
+        BaseSolver(const Formula &);
+
+        void Rebuild();
+        void UpdateWatchers(Literal::Int);
+        void Assign(Literal::Int, VariableAssignment);
+        UnitPropagationResult UnitPropagation();
+
+        const Formula &formula;
+        std::unordered_map<Literal::Int, VariableIndexEntry> variable_index{};
+        std::vector<Watcher> watchers{};
+        Assignment assignment;
+        DecisionTrail trail{};
+    };
+
+    class DpllSolver : public BaseSolver {
      public:
         DpllSolver(const Formula &);
         DpllSolver(const DpllSolver &) = default;
@@ -45,21 +50,10 @@ namespace sat_solver {
         DpllSolver &operator=(DpllSolver &&) = default;
 
         inline const Assignment &GetAssignment() const {
-            return this->state.assignment;
+            return this->assignment;
         }
 
         SolverStatus Solve();
-
-     private:
-        enum class BcpResult {
-            Sat,
-            Unsat,
-            Pass
-        };
-
-        BcpResult Bcp();
-
-        internal::SolverState state;
     };
 }
 

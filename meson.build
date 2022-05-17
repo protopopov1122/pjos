@@ -6,6 +6,7 @@ endif
 
 sat_solver_source = [
   'source/Assignment.cpp',
+  'source/BaseSolver.cpp',
   'source/Clause.cpp',
   'source/ClauseContainer.cpp',
   'source/DecisionTrail.cpp',
