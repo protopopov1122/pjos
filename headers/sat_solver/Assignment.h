@@ -126,6 +126,10 @@ namespace sat_solver {
             return this->assignment[index - 1];
         }
 
+        inline VariableAssignment &operator[](std::size_t index) {
+            return this->assignment[index - 1];
+        }
+
         IteratorType begin() const;
         IteratorType end() const;
 

@@ -24,9 +24,12 @@ namespace sat_solver {
         }
 
         if (assigned_variable != Literal::Terminator) { // Watcher is being updated due to new variable assignment
-            auto var_assignment = assn.Of(assigned_variable);
+            auto var_assignment = assn[assigned_variable];
             if (var_assignment != VariableAssignment::Unassigned) {
-                auto literal_index = this->clause.FindLiteral(Literal{assigned_variable, var_assignment}); // Look for a literal in a clause that could be satisfied by the new assignment
+                auto literal_iter = this->clause.FindLiteral(Literal{assigned_variable, var_assignment}); // Look for a literal in a clause that could be satisfied by the new assignment
+                auto literal_index = literal_iter != this->clause.end()
+                    ? std::distance(this->clause.begin(), literal_iter)
+                    : -1;
                 if (literal_index != -1 && this->watched_literals.first != literal_index) { // Assigned variable satisfied the clause. Watch corresponding literal,
                                                                                             // if it's not already watched
                     this->watched_literals.second = this->watched_literals.first;
@@ -51,7 +54,7 @@ namespace sat_solver {
         this->watched_literals = std::make_pair(-1, -1);
         for (std::int64_t i = 0; i < static_cast<std::int64_t>(this->clause.Length()); i++) {
             auto literal = this->clause[i];
-            auto var_assignment = assn.Of(literal.Variable());
+            auto var_assignment = assn[literal.Variable()];
             if (literal.Eval(var_assignment)) {
                 this->watched_literals.second = this->watched_literals.first;
                 this->watched_literals.first = i;
@@ -69,7 +72,7 @@ namespace sat_solver {
 
     std::int64_t Watcher::FindUnassigned(const Assignment &assn, std::int64_t other) {
         for (std::int64_t i = 0; i < static_cast<std::int64_t>(this->clause.Length()); i++) {
-            auto var_assignment = assn.Of(this->clause[i].Variable());
+            auto var_assignment = assn[this->clause[i].Variable()];
             if (var_assignment == VariableAssignment::Unassigned && i != other) {
                 return i;
             }
@@ -82,7 +85,7 @@ namespace sat_solver {
             return false;
         }
         auto literal = this->clause[index];
-        auto var_assignment = assn.Of(literal.Variable());
+        auto var_assignment = assn[literal.Variable()];
         return literal.Eval(var_assignment);
     }
 
@@ -91,7 +94,7 @@ namespace sat_solver {
             return true;
         }
         auto literal = this->clause[index];
-        auto var_assignment = assn.Of(literal.Variable());
+        auto var_assignment = assn[literal.Variable()];
         return var_assignment != VariableAssignment::Unassigned && !literal.Eval(var_assignment);
     }
 

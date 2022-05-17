@@ -9,6 +9,8 @@ namespace sat_solver {
 
     class ClauseView {
      public:
+        using IteratorType = const Literal *;
+
         ClauseView() = delete;
         ClauseView(const ClauseView &) = default;
         ClauseView(ClauseView &&) = default;
@@ -19,9 +21,12 @@ namespace sat_solver {
         ClauseView &operator=(ClauseView &&) = default;
 
         bool HasVariable(Literal::Int) const;
-        bool HasLiteral(Literal) const;
-        std::int64_t FindLiteral(Literal) const;
-        
+        IteratorType FindLiteral(Literal) const;
+
+        inline bool HasLiteral(Literal literal) const {
+            return this->FindLiteral(literal) != this->end();
+        }
+
         inline std::size_t Length() const {
            return this->clause_length;
         }
@@ -40,11 +45,11 @@ namespace sat_solver {
            return this->clause[index];
         }
 
-        inline const Literal *begin() const {
+        inline IteratorType begin() const {
            return this->clause;
         }
 
-        inline const Literal *end() const {
+        inline IteratorType end() const {
            return this->clause + this->clause_length;
         }
     

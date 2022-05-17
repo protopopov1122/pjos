@@ -45,7 +45,7 @@ namespace sat_solver {
     }
 
     void internal::SolverState::Assign(Literal::Int variable, VariableAssignment assignment) {
-        this->assignment.Set(variable, assignment);
+        this->assignment[variable] = assignment;
         this->UpdateWatchers(variable);
     }
 
@@ -76,7 +76,7 @@ namespace sat_solver {
                 this->state.Assign(variable, new_assignment);
             } else {
                 for (std::int64_t variable = this->state.assignment.NumOfVariables(); variable > 0; variable--) {
-                    auto assn = this->state.assignment.Of(variable);
+                    auto assn = this->state.assignment[variable];
                     if (assn == VariableAssignment::Unassigned) {
                         this->state.trail.Decision(variable, VariableAssignment::True);
                         this->state.Assign(variable, VariableAssignment::True);

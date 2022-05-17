@@ -15,16 +15,12 @@ namespace sat_solver {
         return std::binary_search(this->begin(), this->end(), var, var_comparator);
     }
 
-    bool ClauseView::HasLiteral(Literal literal) const {
-        return std::binary_search(this->begin(), this->end(), literal, std::less<Literal>{});
-    }
-
-    std::int64_t ClauseView::FindLiteral(Literal literal) const {
-        auto it = std::find(this->begin(), this->end(), literal);
-        if (it != this->end()) {
-            return it - this->begin();
+    ClauseView::IteratorType ClauseView::FindLiteral(Literal literal) const {
+        auto it = std::lower_bound(this->begin(), this->end(), literal, std::less<Literal>{});
+        if (it != this->end() && literal == *it) {
+            return it;
         } else {
-            return -1;
+            return this->end();
         }
     }
 
