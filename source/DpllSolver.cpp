@@ -16,15 +16,17 @@ namespace sat_solver {
                 Literal::Int variable;
                 VariableAssignment assignment;
                 bool undo_decision = true;
-                do {
-                    undo_decision = this->trail.Undo(variable, assignment);
+                while (undo_decision) {
+                    auto clause_index = this->trail.Undo(variable, assignment);
                     if (variable == Literal::Terminator) {
                         return SolverStatus::Unsatisfied;
                     }
-                    if (undo_decision) {
+                    if (clause_index != DecisionTrail::DecisionLabel) {
                         this->Assign(variable, VariableAssignment::Unassigned);
+                    } else {
+                        undo_decision = false;
                     }
-                } while (undo_decision);
+                }
 
                 auto new_assignment = FlipVariableAssignment(assignment);
                 this->trail.Propagation(variable, new_assignment);

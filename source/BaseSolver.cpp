@@ -62,7 +62,7 @@ namespace sat_solver {
                 if (watcher_status == ClauseStatus::Unit) {
                     auto [variable, assignment] = this->formula[i][watcher_unit].Assignment();
 
-                    this->trail.Propagation(variable, assignment);
+                    this->trail.Propagation(variable, assignment, i);
                     this->Assign(variable, assignment);
                     propagate = true;
                 } else if (watcher_status == ClauseStatus::Unsatisfied) {

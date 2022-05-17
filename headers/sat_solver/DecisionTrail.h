@@ -9,15 +9,17 @@ namespace sat_solver {
 
     class DecisionTrail {
         struct Entry {
-            Entry(Literal::Int, VariableAssignment, bool, std::size_t);
+            Entry(Literal::Int, VariableAssignment, std::int64_t, std::size_t);
 
             Literal::Int variable;
             VariableAssignment new_assignment;
-            bool decision;
+            std::int64_t clause_index;
             std::size_t level;
         };
 
      public:
+        using Label = std::int64_t;
+
         DecisionTrail() = default;
         DecisionTrail(const DecisionTrail &) = default;
         DecisionTrail(DecisionTrail &&) = default;
@@ -33,7 +35,11 @@ namespace sat_solver {
 
         void Decision(Literal::Int, VariableAssignment);
         void Propagation(Literal::Int, VariableAssignment);
-        bool Undo(Literal::Int &, VariableAssignment &);
+        void Propagation(Literal::Int, VariableAssignment, std::size_t);
+        Label Undo(Literal::Int &, VariableAssignment &);
+
+        static constexpr Label NoClauseLabel{-2};
+        static constexpr Label DecisionLabel{-1};
 
      private:
         std::vector<Entry> trail{};

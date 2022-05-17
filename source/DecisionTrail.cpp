@@ -2,29 +2,33 @@
 
 namespace sat_solver {
 
-    DecisionTrail::Entry::Entry(Literal::Int variable, VariableAssignment new_assn, bool decision, std::size_t level)
-        : variable{variable}, new_assignment{new_assn}, decision{decision}, level{level} {}
+    DecisionTrail::Entry::Entry(Literal::Int variable, VariableAssignment new_assn, std::int64_t clause_index, std::size_t level)
+        : variable{variable}, new_assignment{new_assn}, clause_index{clause_index}, level{level} {}
 
     void DecisionTrail::Decision(Literal::Int variable, VariableAssignment assn) {
-        this->trail.emplace_back(variable, assn, true, ++this->level);
+        this->trail.emplace_back(variable, assn, DecisionLabel, ++this->level);
     }
 
     void DecisionTrail::Propagation(Literal::Int variable, VariableAssignment assn) {
-        this->trail.emplace_back(variable, assn, false, this->level);
+        this->trail.emplace_back(variable, assn, NoClauseLabel, this->level);
     }
 
-    bool DecisionTrail::Undo(Literal::Int &variable, VariableAssignment &assignment) {
+    void DecisionTrail::Propagation(Literal::Int variable, VariableAssignment assn, std::size_t clause_index) {
+        this->trail.emplace_back(variable, assn, static_cast<std::int64_t>(clause_index), this->level);
+    }
+
+    DecisionTrail::Label DecisionTrail::Undo(Literal::Int &variable, VariableAssignment &assignment) {
         if (this->trail.empty()) {
             variable = Literal::Terminator;
             assignment = VariableAssignment::Unassigned;
-            return false;
+            return NoClauseLabel;
         }
 
         auto &entry = this->trail.back();
         variable = entry.variable;
         assignment = entry.new_assignment;
-        bool decision = entry.decision;
+        auto clause_index = entry.clause_index;
         this->trail.pop_back();
-        return !decision;
+        return clause_index;
     }
 }
