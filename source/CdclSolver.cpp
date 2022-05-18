@@ -3,8 +3,9 @@
 
 namespace sat_solver {
 
-    CdclSolver::CdclSolver(const Formula &formula)
-        : BaseSolver::BaseSolver{formula},
+    CdclSolver::CdclSolver(Formula formula)
+        : ModifiableSolverBase::ModifiableSolverBase(*this, std::move(formula)),
+          BaseSolver::BaseSolver{this->owned_formula},
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked) {}
 
     SolverStatus CdclSolver::Solve() {

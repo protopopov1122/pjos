@@ -12,6 +12,13 @@
 namespace sat_solver {
 
     class BaseSolver {
+     public:
+        inline const Formula &GetFormula() const {
+            return this->formula;
+        }
+
+        friend class ModifiableSolverBase;
+
      protected:
         struct VariableIndexEntry {
             std::vector<std::size_t> positive_clauses;
@@ -46,6 +53,17 @@ namespace sat_solver {
         static constexpr std::size_t ClauseUndef = ~static_cast<std::size_t>(0);
     };
 
+    class ModifiableSolverBase {
+     public:
+        const ClauseView &AppendClause(Clause);
+
+     protected:
+        ModifiableSolverBase(BaseSolver &, Formula);
+
+        BaseSolver &base_solver;
+        Formula owned_formula;
+    };
+
     class DpllSolver : public BaseSolver {
      public:
         DpllSolver(const Formula &);
@@ -64,9 +82,21 @@ namespace sat_solver {
         SolverStatus Solve();
     };
 
-    class CdclSolver : public BaseSolver {
+    class ModifiableDpllSolver : public ModifiableSolverBase, public DpllSolver {
      public:
-        CdclSolver(const Formula &);
+        ModifiableDpllSolver(Formula);
+        ModifiableDpllSolver(const ModifiableDpllSolver &) = default;
+        ModifiableDpllSolver(ModifiableDpllSolver &&) = default;
+
+        ~ModifiableDpllSolver() = default;
+
+        ModifiableDpllSolver &operator=(const ModifiableDpllSolver &) = default;
+        ModifiableDpllSolver &operator=(ModifiableDpllSolver &&) = default;
+    };
+
+    class CdclSolver : public ModifiableSolverBase, public BaseSolver {
+     public:
+        CdclSolver(Formula);
         CdclSolver(const CdclSolver &) = default;
         CdclSolver(CdclSolver &&) = default;
 
@@ -84,7 +114,7 @@ namespace sat_solver {
      private:
         Clause AnalyzeConflict(const ClauseView &);
         AnalysisTrackState &AnalysisTrackOf(Literal::Int);
-        
+
         std::vector<AnalysisTrackState> analysis_track;
     };
 }

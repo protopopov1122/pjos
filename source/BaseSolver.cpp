@@ -81,4 +81,13 @@ namespace sat_solver {
                 : UnitPropagationResult::Pass,
             ClauseUndef);
     }
+
+    ModifiableSolverBase::ModifiableSolverBase(BaseSolver &base_solver, Formula formula)
+        : base_solver{base_solver}, owned_formula{std::move(formula)} {}
+
+    const ClauseView &ModifiableSolverBase::AppendClause(Clause clause) {
+        const auto &view = this->owned_formula.AppendClause(std::move(clause));
+        this->base_solver.Rebuild();
+        return view;
+    }
 }
