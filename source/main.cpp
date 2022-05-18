@@ -21,7 +21,7 @@ int main(int argc, const char **argv) {
         loader.LoadInto(formula);
     }
 
-    ModifiableDpllSolver solver(std::move(formula));
+    CdclSolver solver(std::move(formula));
     auto status = solver.Solve();
     std::cerr << Format(status) << std::endl;
 

@@ -9,7 +9,40 @@ namespace sat_solver {
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked) {}
 
     SolverStatus CdclSolver::Solve() {
-        return SolverStatus::Unsatisfied;
+        for (;;) {
+            auto [bcp_result, conflict_clause] = this->UnitPropagation();
+            if (bcp_result == UnitPropagationResult::Sat) {
+                return SolverStatus::Satisfied;
+            } else if (bcp_result == UnitPropagationResult::Unsat) {
+                if (this->trail.Level() == 0) {
+                    return SolverStatus::Unsatisfied;
+                }
+
+                auto learned_clause = this->AnalyzeConflict(this->formula[conflict_clause]);
+                this->AppendClause(std::move(learned_clause));
+                
+                // TODO: Non-chronological backjump
+                bool undo_decision = true;
+                while (undo_decision) {
+                    auto trail_entry = this->trail.Undo();
+                    if (!trail_entry.has_value()) {
+                        return SolverStatus::Unsatisfied;
+                    }
+
+                    this->Assign(trail_entry->variable, VariableAssignment::Unassigned);
+                    undo_decision = trail_entry->reason != DecisionTrail::ReasonDecision;
+                }
+            } else {
+                for (std::int64_t variable = this->assignment.NumOfVariables(); variable > 0; variable--) {
+                    auto assn = this->assignment[variable];
+                    if (assn == VariableAssignment::Unassigned) {
+                        this->trail.Decision(variable, VariableAssignment::True);
+                        this->Assign(variable, VariableAssignment::True);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     Clause CdclSolver::AnalyzeConflict(const ClauseView &conflict) {
@@ -34,7 +67,7 @@ namespace sat_solver {
                     this->AnalysisTrackOf(variable) = AnalysisTrackState::Pending;
                     number_of_paths++;
                 } else {
-                    learned_clause.Add(literal.Negate());
+                    learned_clause.Add(Literal{variable, FlipVariableAssignment(trail_entry->assignment)});
                 }
             }
             number_of_paths--;
