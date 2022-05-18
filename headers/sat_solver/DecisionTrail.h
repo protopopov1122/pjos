@@ -3,24 +3,24 @@
 
 #include "sat_solver/Assignment.h"
 #include <functional>
+#include <optional>
 #include <vector>
 
 namespace sat_solver {
 
     class DecisionTrail {
+     public:
+        using Reason = std::int64_t;
         struct Entry {
-            Entry(Literal::Int, VariableAssignment, std::int64_t, std::size_t);
+            Entry(Literal::Int, VariableAssignment, Reason, std::size_t);
 
             Literal::Int variable;
-            VariableAssignment new_assignment;
-            std::int64_t clause_index;
+            VariableAssignment assignment;
+            Reason reason;
             std::size_t level;
         };
 
-     public:
-        using Label = std::int64_t;
-
-        DecisionTrail() = default;
+        DecisionTrail(std::size_t);
         DecisionTrail(const DecisionTrail &) = default;
         DecisionTrail(DecisionTrail &&) = default;
 
@@ -36,14 +36,29 @@ namespace sat_solver {
         void Decision(Literal::Int, VariableAssignment);
         void Propagation(Literal::Int, VariableAssignment);
         void Propagation(Literal::Int, VariableAssignment, std::size_t);
-        Label Undo(Literal::Int &, VariableAssignment &);
+        std::optional<Entry> Undo();
 
-        static constexpr Label NoClauseLabel{-2};
-        static constexpr Label DecisionLabel{-1};
+        const Entry *Find(Literal::Int variable) const;
+
+        inline std::size_t Length() const {
+            return this->trail.size();
+        }
+
+        inline const Entry &operator[](std::size_t index) const {
+            return this->trail[index];
+        }
+
+        static constexpr Reason ReasonPropagation{-2};
+        static constexpr Reason ReasonDecision{-1};
+
+        static constexpr bool IsPropagatedFromClause(Reason reason) {
+            return reason >= 0;
+        }
 
      private:
         std::vector<Entry> trail{};
         std::size_t level{0};
+        std::vector<std::size_t> var_index;
     };
 }
 

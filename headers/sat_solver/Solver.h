@@ -24,18 +24,26 @@ namespace sat_solver {
             Pass
         };
 
+        enum class AnalysisTrackState {
+            Untracked,
+            Pending,
+            Processed
+        };
+
         BaseSolver(const Formula &);
 
         void Rebuild();
         void UpdateWatchers(Literal::Int);
         void Assign(Literal::Int, VariableAssignment);
-        UnitPropagationResult UnitPropagation();
+        std::pair<UnitPropagationResult, std::size_t> UnitPropagation();
 
         const Formula &formula;
         std::unordered_map<Literal::Int, VariableIndexEntry> variable_index{};
         std::vector<Watcher> watchers{};
         Assignment assignment;
-        DecisionTrail trail{};
+        DecisionTrail trail;
+
+        static constexpr std::size_t ClauseUndef = ~static_cast<std::size_t>(0);
     };
 
     class DpllSolver : public BaseSolver {
@@ -72,6 +80,12 @@ namespace sat_solver {
         }
 
         SolverStatus Solve();
+
+     private:
+        Clause AnalyzeConflict(const ClauseView &);
+        AnalysisTrackState &AnalysisTrackOf(Literal::Int);
+        
+        std::vector<AnalysisTrackState> analysis_track;
     };
 }
 

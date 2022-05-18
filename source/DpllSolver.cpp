@@ -9,7 +9,7 @@ namespace sat_solver {
 
     SolverStatus DpllSolver::Solve() {
         for (;;) {
-            auto bcp_result = this->UnitPropagation();
+            auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) {
                 return SolverStatus::Satisfied;
             } else if (bcp_result == UnitPropagationResult::Unsat) {
@@ -17,14 +17,17 @@ namespace sat_solver {
                 VariableAssignment assignment;
                 bool undo_decision = true;
                 while (undo_decision) {
-                    auto clause_index = this->trail.Undo(variable, assignment);
-                    if (variable == Literal::Terminator) {
+                    auto trail_entry = this->trail.Undo();
+                    if (!trail_entry.has_value()) {
                         return SolverStatus::Unsatisfied;
                     }
-                    if (clause_index != DecisionTrail::DecisionLabel) {
+
+                    variable = trail_entry->variable;
+                    if (trail_entry->reason != DecisionTrail::ReasonDecision) {
                         this->Assign(variable, VariableAssignment::Unassigned);
                     } else {
                         undo_decision = false;
+                        assignment = trail_entry->assignment;
                     }
                 }
 

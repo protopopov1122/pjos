@@ -58,6 +58,10 @@ namespace sat_solver {
                    (this->literal < 0 && assn == VariableAssignment::False);
         }
 
+        inline Literal Negate() const {
+            return Literal{-this->literal};
+        }
+
         inline explicit operator Int() const {
             return this->literal;
         }

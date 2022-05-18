@@ -1,9 +1,13 @@
 #include "sat_solver/Solver.h"
+#include <algorithm>
+#include <cassert>
+#include "sat_solver/Format.h"
+#include <iostream>
 
 namespace sat_solver {
 
     BaseSolver::BaseSolver(const Formula &formula)
-        : formula{formula}, assignment{static_cast<std::size_t>(formula.NumOfVariables())} {
+        : formula{formula}, assignment{static_cast<std::size_t>(formula.NumOfVariables())}, trail{static_cast<std::size_t>(formula.NumOfVariables())} {
         
         this->Rebuild();
     }
@@ -47,7 +51,7 @@ namespace sat_solver {
         this->UpdateWatchers(variable);
     }
 
-    BaseSolver::UnitPropagationResult BaseSolver::UnitPropagation() {
+    std::pair<BaseSolver::UnitPropagationResult, std::size_t> BaseSolver::UnitPropagation() {
         bool all_satisfied = false, propagate = true;
         while (propagate && !all_satisfied) {
             propagate = false;
@@ -66,13 +70,15 @@ namespace sat_solver {
                     this->Assign(variable, assignment);
                     propagate = true;
                 } else if (watcher_status == ClauseStatus::Unsatisfied) {
-                    return UnitPropagationResult::Unsat;
+                    return std::make_pair(UnitPropagationResult::Unsat, i);
                 }
             }
         }
 
-        return all_satisfied
-            ? UnitPropagationResult::Sat
-            : UnitPropagationResult::Pass;
+        return std::make_pair(
+            all_satisfied
+                ? UnitPropagationResult::Sat
+                : UnitPropagationResult::Pass,
+            ClauseUndef);
     }
 }
