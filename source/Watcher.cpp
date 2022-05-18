@@ -24,19 +24,22 @@ namespace sat_solver {
             throw SatError{SatErrorCode::InvalidParameter, "Provided assignment does not cover all clause literals"};
         }
 
-        this->UpdateStatus(assn); // TODO Optimize state update
-        if (assigned_variable != Literal::Terminator && this->status != ClauseStatus::Satisfied) { // Watcher is being updated due to new variable assignment
-                                                                                                   // which could potentially lead to satisfied clause
+        if (assigned_variable != Literal::Terminator) { // Watcher is being updated due to new variable assignment
+                                                        // which could potentially lead to satisfied clause
             auto var_assignment = assn[assigned_variable];
             if (var_assignment != VariableAssignment::Unassigned) {
                 auto literal_iter = this->clause.FindLiteral(Literal{assigned_variable, var_assignment}); // Look for a literal in a clause that could be satisfied by the new assignment
                 auto literal_index = literal_iter != this->clause.end()
                     ? std::distance(this->clause.begin(), literal_iter)
                     : -1;
-                if (literal_index != -1 && this->watched_literals.first != literal_index) { // Assigned variable satisfied the clause. Watch corresponding literal,
-                                                                                            // if it's not already watched
-                    this->watched_literals.second = this->watched_literals.first;
-                    this->watched_literals.first = literal_index;
+                if (literal_index != -1) { // Assigned variable satisfied the clause. Watch corresponding literal,
+                                           // if it's not already watched
+                    if (!this->IsSatisfied(assn, this->watched_literals.first)) { 
+                        this->watched_literals.second = this->watched_literals.first;
+                        this->watched_literals.first = literal_index;
+                    } else if (!this->IsSatisfied(assn, this->watched_literals.second)) {
+                        this->watched_literals.second = literal_index;
+                    }
                 }
             }
         }
