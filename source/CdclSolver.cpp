@@ -1,13 +1,20 @@
 #include "sat_solver/Solver.h"
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 
 namespace sat_solver {
 
     CdclSolver::CdclSolver(Formula formula)
         : ModifiableSolverBase::ModifiableSolverBase(*this, std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
-          analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked) {}
+          analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
+          vsids{this->formula, this->assignment} {
+        
+        this->assignment_callback = [this](auto variable, auto assignment) {
+            this->OnAssign(variable, assignment);
+        };
+    }
 
     SolverStatus CdclSolver::Solve() {
         this->AssignPureLiterals();
@@ -27,20 +34,14 @@ namespace sat_solver {
                     return SolverStatus::Unsatisfied;
                 }
             } else {
-                bool made_decision = false;
-                for (std::size_t variable = 1; !made_decision && variable <= this->assignment.NumOfVariables(); variable++) {
-                    auto assn = this->assignment[variable];
-                    if (assn == VariableAssignment::Unassigned) {
-                        const auto &variable_index_entry = this->variable_index[variable - 1];
-                        auto variable_assignment = variable_index_entry.positive_clauses.size() >= variable_index_entry.negative_clauses.size()
-                            ? VariableAssignment::True
-                            : VariableAssignment::False;
-                        this->trail.Decision(variable, variable_assignment);
-                        this->Assign(variable, variable_assignment);
-                        made_decision = true;
-                    }
-                }
-                assert(made_decision);
+                auto variable = this->vsids.SuggestedVariableForAssignment();
+                assert(variable != Literal::Terminator);
+                const auto &variable_index_entry = this->variable_index[variable - 1];
+                auto variable_assignment = variable_index_entry.positive_clauses.size() >= variable_index_entry.negative_clauses.size()
+                    ? VariableAssignment::True
+                    : VariableAssignment::False;
+                this->trail.Decision(variable, variable_assignment);
+                this->Assign(variable, variable_assignment);
             }
         }
     }
@@ -70,6 +71,7 @@ namespace sat_solver {
                 } else {
                     learned_clause.Add(Literal{variable, FlipVariableAssignment(trail_entry->assignment)});
                     backjump_level = std::max(backjump_level, trail_entry->level);
+                    this->vsids.OnVariableActivity(trail_entry->variable);
                 }
             }
             number_of_paths--;
@@ -89,6 +91,7 @@ namespace sat_solver {
 
         const auto &trail_entry = this->trail[trail_index];
         learned_clause.Add(Literal{trail_entry.variable, FlipVariableAssignment(trail_entry.assignment)});
+        this->vsids.OnVariableActivity(trail_entry.variable);
         assert(trail_entry.level == this->trail.Level());
         assert(backjump_level < this->trail.Level());
 
@@ -117,5 +120,10 @@ namespace sat_solver {
         if (static_cast<std::size_t>(this->formula.NumOfVariables()) > this->analysis_track.size()) {
             this->analysis_track.insert(this->analysis_track.end(), this->formula.NumOfVariables() - this->analysis_track.size(), AnalysisTrackState::Untracked);
         }
+        this->vsids.OnUpdate();
+    }
+
+    void CdclSolver::OnAssign(Literal::Int variable, VariableAssignment) {
+        this->vsids.OnVariableAssignment(variable);
     }
 }

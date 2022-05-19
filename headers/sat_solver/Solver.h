@@ -6,6 +6,7 @@
 #include "sat_solver/Assignment.h"
 #include "sat_solver/Watcher.h"
 #include "sat_solver/DecisionTrail.h"
+#include "sat_solver/Heuristics.h"
 #include <unordered_map>
 #include <vector>
 
@@ -65,6 +66,7 @@ namespace sat_solver {
         std::vector<Watcher> watchers{};
         Assignment assignment;
         DecisionTrail trail;
+        std::function<void(Literal::Int, VariableAssignment)> assignment_callback{nullptr};
 
         static constexpr std::size_t ClauseUndef = ~static_cast<std::size_t>(0);
     };
@@ -130,11 +132,13 @@ namespace sat_solver {
      private:
         bool Backjump(std::size_t);
         void AttachClause(std::size_t, const ClauseView &);
+        void OnAssign(Literal::Int, VariableAssignment);
 
         std::pair<Clause, std::size_t> AnalyzeConflict(const ClauseView &);
         AnalysisTrackState &AnalysisTrackOf(Literal::Int);
 
         std::vector<AnalysisTrackState> analysis_track;
+        VSIDSHeuristics vsids;
     };
 }
 

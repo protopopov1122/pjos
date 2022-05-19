@@ -80,6 +80,9 @@ namespace sat_solver {
     void BaseSolver::Assign(Literal::Int variable, VariableAssignment assignment) {
         this->assignment[variable] = assignment;
         this->UpdateWatchers(variable);
+        if (this->assignment_callback) {
+            this->assignment_callback(variable, assignment);
+        }
     }
 
     std::pair<BaseSolver::UnitPropagationResult, std::size_t> BaseSolver::UnitPropagation() {

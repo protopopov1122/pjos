@@ -54,12 +54,6 @@ namespace sat_solver {
         }
 
         this->UpdateStatus(assn);
-
-#ifndef NDEBUG
-        Watcher clone{*this};
-        clone.Rescan(assn);
-        assert(this->status == clone.status);
-#endif
     }
 
     void Watcher::Rescan(const Assignment &assn) { // Full rescan of the clause
