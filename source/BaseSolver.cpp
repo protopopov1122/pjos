@@ -113,18 +113,6 @@ namespace sat_solver {
             ClauseUndef);
     }
 
-    bool BaseSolver::Backjump(std::size_t level) {
-        while (this->trail.Level() > level) {
-            auto trail_entry = this->trail.Undo();
-            if (!trail_entry.has_value()) {
-                return false;
-            }
-
-            this->Assign(trail_entry->variable, VariableAssignment::Unassigned);
-        }
-        return true;
-    }
-
     void BaseSolver::AttachClause(std::size_t clause_index, const ClauseView &clause) {
         if (static_cast<std::size_t>(this->formula.NumOfVariables()) > this->variable_index.size()) {
             this->variable_index.insert(this->variable_index.end(), this->formula.NumOfVariables() - this->variable_index.size(), VariableIndexEntry{});

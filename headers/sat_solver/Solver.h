@@ -56,7 +56,6 @@ namespace sat_solver {
         void UpdateWatchers(Literal::Int);
         void Assign(Literal::Int, VariableAssignment);
         std::pair<UnitPropagationResult, std::size_t> UnitPropagation();
-        bool Backjump(std::size_t);
         void UpdateClause(std::size_t, const ClauseView &);
         void AttachClause(std::size_t, const ClauseView &);
         void AssignPureLiterals();
@@ -129,6 +128,7 @@ namespace sat_solver {
         friend class ModifiableSolverBase<CdclSolver>;
 
      private:
+        bool Backjump(std::size_t);
         void AttachClause(std::size_t, const ClauseView &);
 
         std::pair<Clause, std::size_t> AnalyzeConflict(const ClauseView &);

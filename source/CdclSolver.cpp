@@ -99,6 +99,18 @@ namespace sat_solver {
         return this->analysis_track[variable - 1];
     }
 
+    bool CdclSolver::Backjump(std::size_t level) {
+        while (this->trail.Level() > level) {
+            auto trail_entry = this->trail.Undo();
+            if (!trail_entry.has_value()) {
+                return false;
+            }
+
+            this->Assign(trail_entry->variable, VariableAssignment::Unassigned);
+        }
+        return true;
+    }
+
     void CdclSolver::AttachClause(std::size_t clause_index, const ClauseView &clause) {
         this->BaseSolver::AttachClause(clause_index, clause);
 
