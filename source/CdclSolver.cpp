@@ -10,6 +10,7 @@ namespace sat_solver {
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked) {}
 
     SolverStatus CdclSolver::Solve() {
+        this->AssignPureLiterals();
         for (;;) {
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) {
@@ -30,8 +31,12 @@ namespace sat_solver {
                 for (std::size_t variable = 1; !made_decision && variable <= this->assignment.NumOfVariables(); variable++) {
                     auto assn = this->assignment[variable];
                     if (assn == VariableAssignment::Unassigned) {
-                        this->trail.Decision(variable, VariableAssignment::True);
-                        this->Assign(variable, VariableAssignment::True);
+                        const auto &variable_index_entry = this->variable_index[variable - 1];
+                        auto variable_assignment = variable_index_entry.positive_clauses.size() >= variable_index_entry.negative_clauses.size()
+                            ? VariableAssignment::True
+                            : VariableAssignment::False;
+                        this->trail.Decision(variable, variable_assignment);
+                        this->Assign(variable, variable_assignment);
                         made_decision = true;
                     }
                 }

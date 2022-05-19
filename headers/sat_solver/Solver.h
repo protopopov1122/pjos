@@ -25,11 +25,6 @@ namespace sat_solver {
         friend class ModifiableSolverBase;
 
      protected:
-        struct VariableIndexEntry {
-            std::vector<std::size_t> positive_clauses;
-            std::vector<std::size_t> negative_clauses;
-        };
-
         enum class UnitPropagationResult {
             Sat,
             Unsat,
@@ -42,6 +37,19 @@ namespace sat_solver {
             Processed
         };
 
+        enum class LiteralPolarity {
+            PurePositive,
+            PureNegative,
+            Mixed,
+            None
+        };
+
+        struct VariableIndexEntry {
+            std::vector<std::size_t> positive_clauses{};
+            std::vector<std::size_t> negative_clauses{};
+            LiteralPolarity polarity{LiteralPolarity::None};
+        };
+
         BaseSolver(const Formula &);
 
         void Rebuild();
@@ -51,9 +59,10 @@ namespace sat_solver {
         bool Backjump(std::size_t);
         void UpdateClause(std::size_t, const ClauseView &);
         void AttachClause(std::size_t, const ClauseView &);
+        void AssignPureLiterals();
 
         const Formula &formula;
-        std::unordered_map<Literal::Int, VariableIndexEntry> variable_index{};
+        std::vector<VariableIndexEntry> variable_index{};
         std::vector<Watcher> watchers{};
         Assignment assignment;
         DecisionTrail trail;
