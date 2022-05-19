@@ -20,19 +20,22 @@ namespace sat_solver {
         for (std::size_t clause_idx = 0; clause_idx < this->formula.NumOfClauses(); clause_idx++) {
             const auto &clause = this->formula[clause_idx];
             this->watchers.emplace_back(clause);
+            this->UpdateClause(clause_idx, clause);
+        }
+    }
 
-            for (auto literal : clause) {
-                auto index_it = this->variable_index.find(literal.Variable());
-                if (index_it == this->variable_index.end()) {
-                    index_it = this->variable_index.emplace(std::make_pair(literal.Variable(), VariableIndexEntry{})).first;
-                }
+    void BaseSolver::UpdateClause(std::size_t clause_idx, const ClauseView &clause) {
+        for (auto literal : clause) {
+            auto index_it = this->variable_index.find(literal.Variable());
+            if (index_it == this->variable_index.end()) {
+                index_it = this->variable_index.emplace(std::make_pair(literal.Variable(), VariableIndexEntry{})).first;
+            }
 
-                auto &index_entry = index_it->second;
-                if (literal.Assignment().second == VariableAssignment::True) {
-                    index_entry.positive_clauses.emplace_back(clause_idx);
-                } else {
-                    index_entry.negative_clauses.emplace_back(clause_idx);
-                }
+            auto &index_entry = index_it->second;
+            if (literal.Assignment().second == VariableAssignment::True) {
+                index_entry.positive_clauses.emplace_back(clause_idx);
+            } else {
+                index_entry.negative_clauses.emplace_back(clause_idx);
             }
         }
     }
@@ -94,12 +97,9 @@ namespace sat_solver {
         return true;
     }
 
-    ModifiableSolverBase::ModifiableSolverBase(BaseSolver &base_solver, Formula formula)
-        : base_solver{base_solver}, owned_formula{std::move(formula)} {}
-
-    const ClauseView &ModifiableSolverBase::AppendClause(Clause clause) {
-        const auto &view = this->owned_formula.AppendClause(std::move(clause));
-        this->base_solver.Rebuild();
-        return view;
+    void BaseSolver::AttachClause(std::size_t clause_index, const ClauseView &clause) {
+        auto watcher_iter = this->watchers.emplace(this->watchers.begin() + clause_index, clause);
+        this->UpdateClause(clause_index, clause);
+        watcher_iter->Rescan(this->assignment);
     }
 }

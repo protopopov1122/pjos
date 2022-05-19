@@ -93,4 +93,12 @@ namespace sat_solver {
     BaseSolver::AnalysisTrackState &CdclSolver::AnalysisTrackOf(Literal::Int variable) {
         return this->analysis_track[variable - 1];
     }
+
+    void CdclSolver::AttachClause(std::size_t clause_index, const ClauseView &clause) {
+        this->BaseSolver::AttachClause(clause_index, clause);
+
+        if (static_cast<std::size_t>(this->formula.NumOfVariables()) > this->analysis_track.size()) {
+            this->analysis_track.insert(this->analysis_track.end(), this->formula.NumOfVariables() - this->analysis_track.size(), AnalysisTrackState::Untracked);
+        }
+    }
 }

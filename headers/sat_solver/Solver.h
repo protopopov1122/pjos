@@ -21,6 +21,7 @@ namespace sat_solver {
             return this->assignment;
         }
 
+        template <typename Base>
         friend class ModifiableSolverBase;
 
      protected:
@@ -48,6 +49,8 @@ namespace sat_solver {
         void Assign(Literal::Int, VariableAssignment);
         std::pair<UnitPropagationResult, std::size_t> UnitPropagation();
         bool Backjump(std::size_t);
+        void UpdateClause(std::size_t, const ClauseView &);
+        void AttachClause(std::size_t, const ClauseView &);
 
         const Formula &formula;
         std::unordered_map<Literal::Int, VariableIndexEntry> variable_index{};
@@ -58,12 +61,18 @@ namespace sat_solver {
         static constexpr std::size_t ClauseUndef = ~static_cast<std::size_t>(0);
     };
 
+    template <typename Base>
     class ModifiableSolverBase {
      public:
-        const ClauseView &AppendClause(Clause);
+        const ClauseView &AppendClause(Clause clause) {
+            const auto &view = this->owned_formula.AppendClause(std::move(clause));
+            static_cast<Base *>(this)->AttachClause(this->owned_formula.NumOfClauses() - 1, view);
+            return view;
+        }
 
      protected:
-        ModifiableSolverBase(BaseSolver &, Formula);
+        ModifiableSolverBase(BaseSolver &base_solver, Formula formula)
+            : base_solver{base_solver}, owned_formula{std::move(formula)} {}
 
         BaseSolver &base_solver;
         Formula owned_formula;
@@ -83,7 +92,7 @@ namespace sat_solver {
         SolverStatus Solve();
     };
 
-    class ModifiableDpllSolver : public ModifiableSolverBase, public DpllSolver {
+    class ModifiableDpllSolver : public ModifiableSolverBase<ModifiableDpllSolver>, public DpllSolver {
      public:
         ModifiableDpllSolver(Formula);
         ModifiableDpllSolver(const ModifiableDpllSolver &) = default;
@@ -95,7 +104,7 @@ namespace sat_solver {
         ModifiableDpllSolver &operator=(ModifiableDpllSolver &&) = default;
     };
 
-    class CdclSolver : public ModifiableSolverBase, public BaseSolver {
+    class CdclSolver : public ModifiableSolverBase<CdclSolver>, public BaseSolver {
      public:
         CdclSolver(Formula);
         CdclSolver(const CdclSolver &) = default;
@@ -108,7 +117,11 @@ namespace sat_solver {
 
         SolverStatus Solve();
 
+        friend class ModifiableSolverBase<CdclSolver>;
+
      private:
+        void AttachClause(std::size_t, const ClauseView &);
+
         std::pair<Clause, std::size_t> AnalyzeConflict(const ClauseView &);
         AnalysisTrackState &AnalysisTrackOf(Literal::Int);
 
