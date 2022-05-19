@@ -26,14 +26,16 @@ namespace sat_solver {
                     return SolverStatus::Unsatisfied;
                 }
             } else {
-                for (std::int64_t variable = this->assignment.NumOfVariables(); variable > 0; variable--) {
+                bool made_decision = false;
+                for (std::size_t variable = 1; !made_decision && variable <= this->assignment.NumOfVariables(); variable++) {
                     auto assn = this->assignment[variable];
                     if (assn == VariableAssignment::Unassigned) {
                         this->trail.Decision(variable, VariableAssignment::True);
                         this->Assign(variable, VariableAssignment::True);
-                        break;
+                        made_decision = true;
                     }
                 }
+                assert(made_decision);
             }
         }
     }

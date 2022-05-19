@@ -17,6 +17,10 @@ namespace sat_solver {
             return this->formula;
         }
 
+        inline const Assignment &GetAssignment() const {
+            return this->assignment;
+        }
+
         friend class ModifiableSolverBase;
 
      protected:
@@ -76,10 +80,6 @@ namespace sat_solver {
         DpllSolver &operator=(const DpllSolver &) = default;
         DpllSolver &operator=(DpllSolver &&) = default;
 
-        inline const Assignment &GetAssignment() const {
-            return this->assignment;
-        }
-
         SolverStatus Solve();
     };
 
@@ -105,10 +105,6 @@ namespace sat_solver {
 
         CdclSolver &operator=(const CdclSolver &) = default;
         CdclSolver &operator=(CdclSolver &&) = default;
-
-        inline const Assignment &GetAssignment() const {
-            return this->assignment;
-        }
 
         SolverStatus Solve();
 
