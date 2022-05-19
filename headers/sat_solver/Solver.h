@@ -43,6 +43,7 @@ namespace sat_solver {
         void UpdateWatchers(Literal::Int);
         void Assign(Literal::Int, VariableAssignment);
         std::pair<UnitPropagationResult, std::size_t> UnitPropagation();
+        bool Backjump(std::size_t);
 
         const Formula &formula;
         std::unordered_map<Literal::Int, VariableIndexEntry> variable_index{};
@@ -112,7 +113,7 @@ namespace sat_solver {
         SolverStatus Solve();
 
      private:
-        Clause AnalyzeConflict(const ClauseView &);
+        std::pair<Clause, std::size_t> AnalyzeConflict(const ClauseView &);
         AnalysisTrackState &AnalysisTrackOf(Literal::Int);
 
         std::vector<AnalysisTrackState> analysis_track;

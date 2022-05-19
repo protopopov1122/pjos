@@ -34,6 +34,11 @@ namespace sat_solver {
         auto entry = this->trail.back();
         this->trail.pop_back();
         this->var_index[entry.variable - 1] = EmptyIndex;
+        if (!this->trail.empty()) {
+            this->level = this->trail.back().level;
+        } else {
+            this->level = 0;
+        }
         return entry;
     }
 

@@ -1,4 +1,5 @@
 #include "sat_solver/Solver.h"
+#include <algorithm>
 #include <cassert>
 
 namespace sat_solver {
@@ -18,19 +19,11 @@ namespace sat_solver {
                     return SolverStatus::Unsatisfied;
                 }
 
-                auto learned_clause = this->AnalyzeConflict(this->formula[conflict_clause]);
+                auto [learned_clause, backjump_level] = this->AnalyzeConflict(this->formula[conflict_clause]);
                 this->AppendClause(std::move(learned_clause));
                 
-                // TODO: Non-chronological backjump
-                bool undo_decision = true;
-                while (undo_decision) {
-                    auto trail_entry = this->trail.Undo();
-                    if (!trail_entry.has_value()) {
-                        return SolverStatus::Unsatisfied;
-                    }
-
-                    this->Assign(trail_entry->variable, VariableAssignment::Unassigned);
-                    undo_decision = trail_entry->reason != DecisionTrail::ReasonDecision;
+                if (!this->Backjump(backjump_level)) {
+                    return SolverStatus::Unsatisfied;
                 }
             } else {
                 for (std::int64_t variable = this->assignment.NumOfVariables(); variable > 0; variable--) {
@@ -45,7 +38,7 @@ namespace sat_solver {
         }
     }
 
-    Clause CdclSolver::AnalyzeConflict(const ClauseView &conflict) {
+    std::pair<Clause, std::size_t> CdclSolver::AnalyzeConflict(const ClauseView &conflict) {
         assert(this->trail.Level() > 0);
         std::fill(this->analysis_track.begin(), this->analysis_track.end(), AnalysisTrackState::Untracked);
 
@@ -54,6 +47,7 @@ namespace sat_solver {
         const ClauseView *clause = std::addressof(conflict);
         std::size_t trail_index = this->trail.Length() - 1;
         std::size_t number_of_paths = 1;
+        std::size_t backjump_level = 0;
         do {
             for (auto literal : *clause) {
                 auto variable = literal.Variable();
@@ -68,6 +62,7 @@ namespace sat_solver {
                     number_of_paths++;
                 } else {
                     learned_clause.Add(Literal{variable, FlipVariableAssignment(trail_entry->assignment)});
+                    backjump_level = std::max(backjump_level, trail_entry->level);
                 }
             }
             number_of_paths--;
@@ -84,9 +79,13 @@ namespace sat_solver {
                 assert(number_of_paths == 1);
             }
         } while (number_of_paths > 1);
-        learned_clause.Add(Literal{this->trail[trail_index].variable, FlipVariableAssignment(this->trail[trail_index].assignment)});
 
-        return learned_clause.Make();
+        const auto &trail_entry = this->trail[trail_index];
+        learned_clause.Add(Literal{trail_entry.variable, FlipVariableAssignment(trail_entry.assignment)});
+        assert(trail_entry.level == this->trail.Level());
+        assert(backjump_level < this->trail.Level());
+
+        return std::make_pair(learned_clause.Make(), backjump_level);
     }
 
     BaseSolver::AnalysisTrackState &CdclSolver::AnalysisTrackOf(Literal::Int variable) {

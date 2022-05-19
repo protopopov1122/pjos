@@ -82,6 +82,18 @@ namespace sat_solver {
             ClauseUndef);
     }
 
+    bool BaseSolver::Backjump(std::size_t level) {
+        while (this->trail.Level() > level) {
+            auto trail_entry = this->trail.Undo();
+            if (!trail_entry.has_value()) {
+                return false;
+            }
+
+            this->Assign(trail_entry->variable, VariableAssignment::Unassigned);
+        }
+        return true;
+    }
+
     ModifiableSolverBase::ModifiableSolverBase(BaseSolver &base_solver, Formula formula)
         : base_solver{base_solver}, owned_formula{std::move(formula)} {}
 
