@@ -72,11 +72,16 @@ namespace sat_solver {
             }
         }
 
+        VariableIndexEntry &VariableIndex(Literal::Int variable) {
+            return this->variable_index[variable - 1];
+        }
+
         void UpdateWatchers(Literal::Int variable) {
-            for (auto affected_watcher : this->variable_index[variable - 1].positive_clauses) {
+            auto &var_index = this->VariableIndex(variable);
+            for (auto affected_watcher : var_index.positive_clauses) {
                 this->watchers[affected_watcher].Update(this->assignment, variable);
             }
-            for (auto affected_watcher : this->variable_index[variable - 1].negative_clauses) {
+            for (auto affected_watcher : var_index.negative_clauses) {
                 this->watchers[affected_watcher].Update(this->assignment, variable);
             }
         }
@@ -120,7 +125,7 @@ namespace sat_solver {
 
         void UpdateClause(std::size_t clause_idx, const ClauseView &clause) {
             for (auto literal : clause) {
-                auto &index_entry = this->variable_index[literal.Variable() - 1];
+                auto &index_entry = this->VariableIndex(literal.Variable());
                 auto &polarity = index_entry.polarity;
                 if (literal.Assignment().second == VariableAssignment::True) {
                     index_entry.positive_clauses.emplace_back(clause_idx);
@@ -171,9 +176,8 @@ namespace sat_solver {
         }
 
         void AssignPureLiterals() {
-            for (std::size_t i = 0; i < this->variable_index.size(); i++) {
-                auto polarity = this->variable_index[i].polarity;
-                auto variable = static_cast<Literal::Int>(i) + 1;
+            for (Literal::Int variable = 1; variable <= this->formula.NumOfVariables(); variable++) {
+                auto polarity = this->VariableIndex(variable).polarity;
                 if (this->assignment[variable] != VariableAssignment::Unassigned) {
                     continue;
                 }
@@ -218,10 +222,9 @@ namespace sat_solver {
         }
 
      protected:
-        ModifiableSolverBase(BaseSolver<C> &base_solver, Formula formula)
-            : base_solver{base_solver}, owned_formula{std::move(formula)} {}
+        ModifiableSolverBase(Formula formula)
+            : owned_formula{std::move(formula)} {}
 
-        BaseSolver<C> &base_solver;
         Formula owned_formula;
     };
 }

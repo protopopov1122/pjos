@@ -5,12 +5,12 @@
 namespace sat_solver {
 
     std::size_t CdclSolver::VariableOccurences::operator()(Literal::Int variable) const {
-        const auto &index_entry = this->solver.variable_index[variable - 1];
+        const auto &index_entry = this->solver.VariableIndex(variable);
         return index_entry.positive_clauses.size() + index_entry.negative_clauses.size();
     }
 
     CdclSolver::CdclSolver(Formula formula)
-        : ModifiableSolverBase::ModifiableSolverBase(*this, std::move(formula)),
+        : ModifiableSolverBase::ModifiableSolverBase(std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
           vsids{this->formula, this->assignment, VariableOccurences{*this}} {}
@@ -35,7 +35,7 @@ namespace sat_solver {
             } else {
                 auto variable = this->vsids.TopVariable();
                 assert(variable != Literal::Terminator);
-                const auto &variable_index_entry = this->variable_index[variable - 1];
+                const auto &variable_index_entry = this->VariableIndex(variable);
                 auto variable_assignment = variable_index_entry.positive_clauses.size() >= variable_index_entry.negative_clauses.size()
                     ? VariableAssignment::True
                     : VariableAssignment::False;

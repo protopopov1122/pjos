@@ -48,6 +48,6 @@ namespace sat_solver {
     }
 
     ModifiableDpllSolver::ModifiableDpllSolver(Formula formula)
-        : ModifiableSolverBase::ModifiableSolverBase{*this, std::move(formula)},
+        : ModifiableSolverBase::ModifiableSolverBase{std::move(formula)},
           DpllSolver::DpllSolver{this->owned_formula} {}
 }
