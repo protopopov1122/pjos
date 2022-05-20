@@ -36,8 +36,10 @@ namespace sat_solver {
         void Decision(Literal::Int, VariableAssignment);
         void Propagation(Literal::Int, VariableAssignment);
         void Propagation(Literal::Int, VariableAssignment, std::size_t);
+        void Assumption(Literal::Int, VariableAssignment);
         std::optional<Entry> Undo();
         void SetNumOfVariables(std::size_t);
+        void Reset();
 
         const Entry *Find(Literal::Int variable) const;
 
@@ -49,6 +51,7 @@ namespace sat_solver {
             return this->trail[index];
         }
 
+        static constexpr Reason ReasonAssumption{-3};
         static constexpr Reason ReasonPropagation{-2};
         static constexpr Reason ReasonDecision{-1};
 

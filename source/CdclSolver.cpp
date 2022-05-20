@@ -15,8 +15,10 @@ namespace sat_solver {
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
           vsids{this->formula, this->assignment, VariableOccurences{*this}} {}
 
-    SolverStatus CdclSolver::Solve() {
-        this->AssignPureLiterals();
+    SolverStatus CdclSolver::SolveImpl() {
+        this->ScanPureLiterals();
+
+        auto pending_assignments_iter = this->pending_assignments.begin();
         for (;;) {
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) {
@@ -32,7 +34,7 @@ namespace sat_solver {
                 if (!this->Backjump(backjump_level)) {
                     return SolverStatus::Unsatisfied;
                 }
-            } else {
+            } else if (pending_assignments_iter == this->pending_assignments.end()) {
                 auto variable = this->vsids.TopVariable();
                 assert(variable != Literal::Terminator);
                 const auto &variable_index_entry = this->VariableIndex(variable);
@@ -41,6 +43,18 @@ namespace sat_solver {
                     : VariableAssignment::False;
                 this->trail.Decision(variable, variable_assignment);
                 this->Assign(variable, variable_assignment);
+            } else {
+                auto [variable, variable_assignment, is_assumption] = *pending_assignments_iter;
+                std::advance(pending_assignments_iter, 1);
+                auto current_assignment = this->assignment[variable];
+                if (current_assignment == VariableAssignment::Unassigned) {
+                    this->Assign(variable, variable_assignment);
+                    if (is_assumption) {
+                        this->trail.Assumption(variable, variable_assignment);
+                    } else {
+                        this->trail.Decision(variable, variable_assignment);
+                    }
+                }
             }
         }
     }

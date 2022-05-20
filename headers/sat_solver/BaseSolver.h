@@ -23,6 +23,23 @@ namespace sat_solver {
             return this->assignment;
         }
 
+        template <typename I>
+        SolverStatus Solve(I assumptions_iter, I assumptions_end) {
+            static_cast<C *>(this)->ResetState();
+            for (; assumptions_iter != assumptions_end; std::advance(assumptions_iter, 1)) {
+                auto literal = *assumptions_iter;
+                auto [variable, var_assignment] = literal.Assignment();
+                this->pending_assignments.emplace_back(variable, var_assignment, true);
+            }
+
+            return static_cast<C *>(this)->SolveImpl();
+        }
+
+        SolverStatus Solve() {
+            static_cast<C *>(this)->ResetState();
+            return static_cast<C *>(this)->SolveImpl();
+        }
+
         template <typename T>
         friend class ModifiableSolverBase;
 
@@ -203,7 +220,7 @@ namespace sat_solver {
             this->watchers.erase(this->watchers.begin() + index);
         }
 
-        void AssignPureLiterals() {
+        void ScanPureLiterals() {
             for (Literal::Int variable = 1; variable <= this->formula.NumOfVariables(); variable++) {
                 auto polarity = this->VariableIndex(variable).polarity;
                 if (this->assignment[variable] != VariableAssignment::Unassigned) {
@@ -213,13 +230,11 @@ namespace sat_solver {
                 switch (polarity) {
                     case LiteralPolarity::PurePositive:
                     case LiteralPolarity::None:
-                        this->trail.Decision(variable, VariableAssignment::True);
-                        this->Assign(variable, VariableAssignment::True);
+                        this->pending_assignments.emplace_back(variable, VariableAssignment::True, false);
                         break;
 
                     case LiteralPolarity::PureNegative:
-                        this->trail.Decision(variable, VariableAssignment::False);
-                        this->Assign(variable, VariableAssignment::False);
+                        this->pending_assignments.emplace_back(variable, VariableAssignment::False, false);
                         break;
 
                     case LiteralPolarity::Mixed:
@@ -231,11 +246,26 @@ namespace sat_solver {
 
         void OnVariableAssignment(Literal::Int, VariableAssignment) {}
 
+        void ResetState() {
+            if (!this->clean_state) {
+                this->clean_state = true;
+                this->pending_assignments.clear();
+                this->assignment.Reset();
+                this->trail.Reset();
+                for (auto &watcher : this->watchers) {
+                    watcher.Rescan(this->assignment);
+                }
+            }
+            this->clean_state = false;
+        }
+
         const Formula &formula;
+        bool clean_state{true};
         std::vector<VariableIndexEntry> variable_index{};
         std::vector<Watcher> watchers{};
         Assignment assignment;
         DecisionTrail trail;
+        std::vector<std::tuple<Literal::Int, VariableAssignment, bool>> pending_assignments{};
 
         static constexpr std::size_t ClauseUndef = ~static_cast<std::size_t>(0);
     };

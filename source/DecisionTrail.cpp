@@ -26,6 +26,11 @@ namespace sat_solver {
         this->trail.emplace_back(variable, assn, static_cast<Reason>(reason), this->level);
     }
 
+    void DecisionTrail::Assumption(Literal::Int variable, VariableAssignment assn) {
+        this->var_index[variable - 1] = this->trail.size();
+        this->trail.emplace_back(variable, assn, ReasonAssumption, ++this->level);
+    }
+
     std::optional<DecisionTrail::Entry> DecisionTrail::Undo() {
         while (!this->trail.empty() && static_cast<std::size_t>(this->trail.back().variable) > this->var_index.size()) {
             this->trail.pop_back();
@@ -43,6 +48,12 @@ namespace sat_solver {
             this->level = 0;
         }
         return entry;
+    }
+
+    void DecisionTrail::Reset() {
+        this->trail.clear();
+        this->level = 0;
+        std::fill(this->var_index.begin(), this->var_index.end(), EmptyIndex);
     }
 
     void DecisionTrail::SetNumOfVariables(std::size_t num_of_variables) {

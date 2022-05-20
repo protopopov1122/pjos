@@ -7,7 +7,8 @@ namespace sat_solver {
     DpllSolver::DpllSolver(const Formula &formula)
         : BaseSolver::BaseSolver{formula} {}
 
-    SolverStatus DpllSolver::Solve() {
+    SolverStatus DpllSolver::SolveImpl() {
+        auto pending_assignments_iter = this->pending_assignments.begin();
         for (;;) {
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) {
@@ -23,7 +24,7 @@ namespace sat_solver {
                     }
 
                     variable = trail_entry->variable;
-                    if (trail_entry->reason != DecisionTrail::ReasonDecision) {
+                    if (DecisionTrail::IsPropagatedFromClause(trail_entry->reason) || trail_entry->reason == DecisionTrail::ReasonPropagation) {
                         this->Assign(variable, VariableAssignment::Unassigned);
                     } else {
                         undo_decision = false;
@@ -34,13 +35,25 @@ namespace sat_solver {
                 auto new_assignment = FlipVariableAssignment(assignment);
                 this->trail.Propagation(variable, new_assignment);
                 this->Assign(variable, new_assignment);
-            } else {
+            } else if (pending_assignments_iter != this->pending_assignments.end()) {
                 for (std::int64_t variable = this->assignment.NumOfVariables(); variable > 0; variable--) {
                     auto assn = this->assignment[variable];
                     if (assn == VariableAssignment::Unassigned) {
                         this->trail.Decision(variable, VariableAssignment::True);
                         this->Assign(variable, VariableAssignment::True);
                         break;
+                    }
+                }
+            } else {
+                auto [variable, variable_assignment, is_assumption] = *pending_assignments_iter;
+                std::advance(pending_assignments_iter, 1);
+                auto current_assignment = this->assignment[variable];
+                if (current_assignment == VariableAssignment::Unassigned) {
+                    this->Assign(variable, variable_assignment);
+                    if (is_assumption) {
+                        this->trail.Assumption(variable, variable_assignment);
+                    } else {
+                        this->trail.Decision(variable, variable_assignment);
                     }
                 }
             }

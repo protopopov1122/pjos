@@ -21,7 +21,16 @@ int main(int argc, const char **argv) {
     }
 
     CdclSolver solver(std::move(formula));
-    auto status = solver.Solve();
+    std::vector<Literal> assumptions{};
+    if (solver.GetFormula().NumOfVariables() >= 1) {
+        assumptions.push_back(1);
+    }
+
+    auto status = solver.Solve(assumptions.begin(), assumptions.end());
+    if (status == SolverStatus::Unsatisfied && !assumptions.empty()) {
+        assumptions[0] = -1;
+        status = solver.Solve(assumptions.begin(), assumptions.end());
+    }
     std::cerr << Format(status) << std::endl;
 
     if (status == SolverStatus::Satisfied) {

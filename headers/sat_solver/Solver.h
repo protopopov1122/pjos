@@ -18,7 +18,10 @@ namespace sat_solver {
         DpllSolver &operator=(const DpllSolver &) = default;
         DpllSolver &operator=(DpllSolver &&) = default;
 
-        SolverStatus Solve();
+        friend class BaseSolver<DpllSolver>;
+
+     private:
+        SolverStatus SolveImpl();
     };
 
     class ModifiableDpllSolver : public ModifiableSolverBase<ModifiableDpllSolver>, public DpllSolver {
@@ -44,7 +47,6 @@ namespace sat_solver {
         CdclSolver &operator=(const CdclSolver &) = default;
         CdclSolver &operator=(CdclSolver &&) = default;
 
-        SolverStatus Solve();
 
         friend class ModifiableSolverBase<CdclSolver>;
         friend class BaseSolver<CdclSolver>;
@@ -56,6 +58,7 @@ namespace sat_solver {
             CdclSolver &solver;
         };
 
+        SolverStatus SolveImpl();
         bool Backjump(std::size_t);
         void AttachClause(std::size_t, const ClauseView &);
         void DetachClause(std::size_t, const ClauseView &);
