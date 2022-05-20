@@ -166,6 +166,8 @@ namespace sat_solver {
         }
 
         void AttachClause(std::size_t clause_index, const ClauseView &clause) {
+            this->assignment.SetNumOfVariables(this->formula.NumOfVariables());
+            this->trail.SetNumOfVariables(this->formula.NumOfVariables());
             if (static_cast<std::size_t>(this->formula.NumOfVariables()) > this->variable_index.size()) {
                 this->variable_index.insert(this->variable_index.end(), this->formula.NumOfVariables() - this->variable_index.size(), VariableIndexEntry{});
             }

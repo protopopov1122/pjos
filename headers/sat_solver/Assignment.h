@@ -134,6 +134,7 @@ namespace sat_solver {
         IteratorType end() const;
 
         Assignment &Reset();
+        void SetNumOfVariables(std::size_t);
 
      private:
         std::vector<VariableAssignment> assignment;

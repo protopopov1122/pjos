@@ -27,6 +27,9 @@ namespace sat_solver {
     }
 
     std::optional<DecisionTrail::Entry> DecisionTrail::Undo() {
+        while (!this->trail.empty() && static_cast<std::size_t>(this->trail.back().variable) > this->var_index.size()) {
+            this->trail.pop_back();
+        }
         if (this->trail.empty()) {
             return std::optional<DecisionTrail::Entry>{};
         }
@@ -40,6 +43,14 @@ namespace sat_solver {
             this->level = 0;
         }
         return entry;
+    }
+
+    void DecisionTrail::SetNumOfVariables(std::size_t num_of_variables) {
+        if (this->var_index.size() > num_of_variables) {
+            this->var_index.erase(this->var_index.begin() + num_of_variables, this->var_index.end());
+        } else if (this->var_index.size() < num_of_variables) {
+            this->var_index.insert(this->var_index.end(), num_of_variables - this->var_index.size(), EmptyIndex);
+        }
     }
 
     const DecisionTrail::Entry *DecisionTrail::Find(Literal::Int variable) const {
