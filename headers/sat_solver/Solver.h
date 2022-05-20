@@ -130,6 +130,12 @@ namespace sat_solver {
         friend class ModifiableSolverBase<CdclSolver>;
 
      private:
+        struct VariableOccurences {
+            std::size_t operator()(Literal::Int) const;
+
+            CdclSolver &solver;
+        };
+
         bool Backjump(std::size_t);
         void AttachClause(std::size_t, const ClauseView &);
         void OnAssign(Literal::Int, VariableAssignment);
@@ -138,7 +144,7 @@ namespace sat_solver {
         AnalysisTrackState &AnalysisTrackOf(Literal::Int);
 
         std::vector<AnalysisTrackState> analysis_track;
-        VSIDSHeuristics vsids;
+        VSIDSHeuristics<VariableOccurences, 1, 1024, 1> vsids;
     };
 }
 

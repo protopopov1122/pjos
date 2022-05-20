@@ -16,7 +16,6 @@ sat_solver_source = [
   'source/Error.cpp',
   'source/Format.cpp',
   'source/Formula.cpp',
-  'source/Heuristics.cpp',
   'source/Literal.cpp',
   'source/Watcher.cpp',
   'source/main.cpp'

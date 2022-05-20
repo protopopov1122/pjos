@@ -5,11 +5,16 @@
 
 namespace sat_solver {
 
+    std::size_t CdclSolver::VariableOccurences::operator()(Literal::Int variable) const {
+        const auto &index_entry = this->solver.variable_index[variable - 1];
+        return index_entry.positive_clauses.size() + index_entry.negative_clauses.size();
+    }
+
     CdclSolver::CdclSolver(Formula formula)
         : ModifiableSolverBase::ModifiableSolverBase(*this, std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
-          vsids{this->formula, this->assignment} {
+          vsids{this->formula, this->assignment, VariableOccurences{*this}} {
         
         this->assignment_callback = [this](auto variable, auto assignment) {
             this->OnAssign(variable, assignment);
@@ -34,7 +39,7 @@ namespace sat_solver {
                     return SolverStatus::Unsatisfied;
                 }
             } else {
-                auto variable = this->vsids.SuggestedVariableForAssignment();
+                auto variable = this->vsids.TopVariable();
                 assert(variable != Literal::Terminator);
                 const auto &variable_index_entry = this->variable_index[variable - 1];
                 auto variable_assignment = variable_index_entry.positive_clauses.size() >= variable_index_entry.negative_clauses.size()
@@ -71,7 +76,7 @@ namespace sat_solver {
                 } else {
                     learned_clause.Add(Literal{variable, FlipVariableAssignment(trail_entry->assignment)});
                     backjump_level = std::max(backjump_level, trail_entry->level);
-                    this->vsids.OnVariableActivity(trail_entry->variable);
+                    this->vsids.VariableActive(trail_entry->variable);
                 }
             }
             number_of_paths--;
@@ -91,7 +96,7 @@ namespace sat_solver {
 
         const auto &trail_entry = this->trail[trail_index];
         learned_clause.Add(Literal{trail_entry.variable, FlipVariableAssignment(trail_entry.assignment)});
-        this->vsids.OnVariableActivity(trail_entry.variable);
+        this->vsids.VariableActive(trail_entry.variable);
         assert(trail_entry.level == this->trail.Level());
         assert(backjump_level < this->trail.Level());
 
@@ -120,10 +125,10 @@ namespace sat_solver {
         if (static_cast<std::size_t>(this->formula.NumOfVariables()) > this->analysis_track.size()) {
             this->analysis_track.insert(this->analysis_track.end(), this->formula.NumOfVariables() - this->analysis_track.size(), AnalysisTrackState::Untracked);
         }
-        this->vsids.OnUpdate();
+        this->vsids.FormulaUpdated();
     }
 
     void CdclSolver::OnAssign(Literal::Int variable, VariableAssignment) {
-        this->vsids.OnVariableAssignment(variable);
+        this->vsids.VariableAssigned(variable);
     }
 }
