@@ -1,7 +1,7 @@
 #ifndef SAT_SOLVER_FORMULA_H_
 #define SAT_SOLVER_FORMULA_H_
 
-#include "sat_solver/ClauseContainer.h"
+#include "sat_solver/Clause.h"
 #include <iterator>
 #include <vector>
 
@@ -76,11 +76,11 @@ namespace sat_solver {
             }
 
             const ClauseView &operator*() const {
-                return **iter;
+                return *iter;
             }
 
             const ClauseView *operator->() const {
-                return std::addressof(**iter);
+                return std::addressof(*iter);
             }
 
             friend void swap(FormulaIterator<I> &it1, FormulaIterator<I> &it2) {
@@ -94,9 +94,9 @@ namespace sat_solver {
 
     class Formula {
      public:
-        using IteratorType = internal::FormulaIterator<std::vector<SharedClausePtr>::const_iterator>;
+        using IteratorType = internal::FormulaIterator<std::vector<Clause>::const_iterator>;
 
-        Formula(ClauseContainer &);
+        Formula() = default;
         Formula(const Formula &) = default;
         Formula(Formula &&) = default;
 
@@ -120,7 +120,7 @@ namespace sat_solver {
         const ClauseView &At(std::size_t index) const;
 
         inline const ClauseView &operator[](std::size_t index) const {
-            return *this->clauses[index];
+            return this->clauses[index];
         }
 
         IteratorType begin() const;
@@ -129,8 +129,7 @@ namespace sat_solver {
         const ClauseView &AppendClause(Clause);
 
      private:
-        ClauseContainer *clause_container;
-        std::vector<SharedClausePtr> clauses{};
+        std::vector<Clause> clauses{};
         Literal::Int num_of_variables{Literal::Terminator};
     };
 

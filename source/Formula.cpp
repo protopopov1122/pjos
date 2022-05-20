@@ -2,9 +2,6 @@
 #include <algorithm>
 
 namespace sat_solver {
-
-    Formula::Formula(ClauseContainer &clause_container)
-        : clause_container{std::addressof(clause_container)} {}
     
     Formula::IteratorType Formula::begin() const {
         return IteratorType{this->clauses.begin()};
@@ -15,7 +12,7 @@ namespace sat_solver {
     }
 
     const ClauseView &Formula::AppendClause(Clause clause) {
-        const auto &view = *this->clauses.emplace_back(this->clause_container->Attach(std::move(clause)));
+        const auto &view = this->clauses.emplace_back(std::move(clause));
         this->num_of_variables = std::max(this->num_of_variables, view.NumOfVariables());
         return view;
     }

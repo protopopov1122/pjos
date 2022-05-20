@@ -9,8 +9,7 @@
 using namespace sat_solver;
 
 int main(int argc, const char **argv) {
-    ClauseContainer clauses;
-    Formula formula{clauses};
+    Formula formula{};
 
     if (argc > 1) {
         std::ifstream input_file{argv[1]};

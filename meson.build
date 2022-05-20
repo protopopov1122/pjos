@@ -8,7 +8,6 @@ sat_solver_source = [
   'source/Assignment.cpp',
   'source/CdclSolver.cpp',
   'source/Clause.cpp',
-  'source/ClauseContainer.cpp',
   'source/DecisionTrail.cpp',
   'source/Dimacs.cpp',
   'source/DpllSolver.cpp',
