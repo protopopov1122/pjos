@@ -1,7 +1,6 @@
 #include "sat_solver/Solver.h"
 #include <algorithm>
 #include <cassert>
-#include <iostream>
 
 namespace sat_solver {
 
@@ -14,12 +13,7 @@ namespace sat_solver {
         : ModifiableSolverBase::ModifiableSolverBase(*this, std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
-          vsids{this->formula, this->assignment, VariableOccurences{*this}} {
-        
-        this->assignment_callback = [this](auto variable, auto assignment) {
-            this->OnAssign(variable, assignment);
-        };
-    }
+          vsids{this->formula, this->assignment, VariableOccurences{*this}} {}
 
     SolverStatus CdclSolver::Solve() {
         this->AssignPureLiterals();
@@ -103,7 +97,7 @@ namespace sat_solver {
         return std::make_pair(learned_clause.Make(), backjump_level);
     }
 
-    BaseSolver::AnalysisTrackState &CdclSolver::AnalysisTrackOf(Literal::Int variable) {
+    BaseSolver<CdclSolver>::AnalysisTrackState &CdclSolver::AnalysisTrackOf(Literal::Int variable) {
         return this->analysis_track[variable - 1];
     }
 
@@ -120,7 +114,7 @@ namespace sat_solver {
     }
 
     void CdclSolver::AttachClause(std::size_t clause_index, const ClauseView &clause) {
-        this->BaseSolver::AttachClause(clause_index, clause);
+        this->BaseSolver<CdclSolver>::AttachClause(clause_index, clause);
 
         if (static_cast<std::size_t>(this->formula.NumOfVariables()) > this->analysis_track.size()) {
             this->analysis_track.insert(this->analysis_track.end(), this->formula.NumOfVariables() - this->analysis_track.size(), AnalysisTrackState::Untracked);
@@ -128,7 +122,7 @@ namespace sat_solver {
         this->vsids.FormulaUpdated();
     }
 
-    void CdclSolver::OnAssign(Literal::Int variable, VariableAssignment) {
+    void CdclSolver::OnVariableAssignment(Literal::Int variable, VariableAssignment) {
         this->vsids.VariableAssigned(variable);
     }
 }

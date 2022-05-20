@@ -1,94 +1,13 @@
 #ifndef SAT_SOLVER_SOLVER_H_
 #define SAT_SOLVER_SOLVER_H_
 
-#include "sat_solver/Core.h"
-#include "sat_solver/Formula.h"
-#include "sat_solver/Assignment.h"
-#include "sat_solver/Watcher.h"
-#include "sat_solver/DecisionTrail.h"
+#include "sat_solver/BaseSolver.h"
 #include "sat_solver/Heuristics.h"
-#include <unordered_map>
 #include <vector>
 
 namespace sat_solver {
 
-    class BaseSolver {
-     public:
-        inline const Formula &GetFormula() const {
-            return this->formula;
-        }
-
-        inline const Assignment &GetAssignment() const {
-            return this->assignment;
-        }
-
-        template <typename Base>
-        friend class ModifiableSolverBase;
-
-     protected:
-        enum class UnitPropagationResult {
-            Sat,
-            Unsat,
-            Pass
-        };
-
-        enum class AnalysisTrackState {
-            Untracked,
-            Pending,
-            Processed
-        };
-
-        enum class LiteralPolarity {
-            PurePositive,
-            PureNegative,
-            Mixed,
-            None
-        };
-
-        struct VariableIndexEntry {
-            std::vector<std::size_t> positive_clauses{};
-            std::vector<std::size_t> negative_clauses{};
-            LiteralPolarity polarity{LiteralPolarity::None};
-        };
-
-        BaseSolver(const Formula &);
-
-        void Rebuild();
-        void UpdateWatchers(Literal::Int);
-        void Assign(Literal::Int, VariableAssignment);
-        std::pair<UnitPropagationResult, std::size_t> UnitPropagation();
-        void UpdateClause(std::size_t, const ClauseView &);
-        void AttachClause(std::size_t, const ClauseView &);
-        void AssignPureLiterals();
-
-        const Formula &formula;
-        std::vector<VariableIndexEntry> variable_index{};
-        std::vector<Watcher> watchers{};
-        Assignment assignment;
-        DecisionTrail trail;
-        std::function<void(Literal::Int, VariableAssignment)> assignment_callback{nullptr};
-
-        static constexpr std::size_t ClauseUndef = ~static_cast<std::size_t>(0);
-    };
-
-    template <typename Base>
-    class ModifiableSolverBase {
-     public:
-        const ClauseView &AppendClause(Clause clause) {
-            const auto &view = this->owned_formula.AppendClause(std::move(clause));
-            static_cast<Base *>(this)->AttachClause(this->owned_formula.NumOfClauses() - 1, view);
-            return view;
-        }
-
-     protected:
-        ModifiableSolverBase(BaseSolver &base_solver, Formula formula)
-            : base_solver{base_solver}, owned_formula{std::move(formula)} {}
-
-        BaseSolver &base_solver;
-        Formula owned_formula;
-    };
-
-    class DpllSolver : public BaseSolver {
+    class DpllSolver : public BaseSolver<DpllSolver> {
      public:
         DpllSolver(const Formula &);
         DpllSolver(const DpllSolver &) = default;
@@ -102,7 +21,7 @@ namespace sat_solver {
         SolverStatus Solve();
     };
 
-    class ModifiableDpllSolver : public ModifiableSolverBase<ModifiableDpllSolver>, public DpllSolver {
+    class ModifiableDpllSolver : public ModifiableSolverBase<DpllSolver>, public DpllSolver {
      public:
         ModifiableDpllSolver(Formula);
         ModifiableDpllSolver(const ModifiableDpllSolver &) = default;
@@ -114,7 +33,7 @@ namespace sat_solver {
         ModifiableDpllSolver &operator=(ModifiableDpllSolver &&) = default;
     };
 
-    class CdclSolver : public ModifiableSolverBase<CdclSolver>, public BaseSolver {
+    class CdclSolver : public ModifiableSolverBase<CdclSolver>, public BaseSolver<CdclSolver> {
      public:
         CdclSolver(Formula);
         CdclSolver(const CdclSolver &) = default;
@@ -128,6 +47,7 @@ namespace sat_solver {
         SolverStatus Solve();
 
         friend class ModifiableSolverBase<CdclSolver>;
+        friend class BaseSolver<CdclSolver>;
 
      private:
         struct VariableOccurences {
@@ -138,7 +58,7 @@ namespace sat_solver {
 
         bool Backjump(std::size_t);
         void AttachClause(std::size_t, const ClauseView &);
-        void OnAssign(Literal::Int, VariableAssignment);
+        void OnVariableAssignment(Literal::Int, VariableAssignment);
 
         std::pair<Clause, std::size_t> AnalyzeConflict(const ClauseView &);
         AnalysisTrackState &AnalysisTrackOf(Literal::Int);
