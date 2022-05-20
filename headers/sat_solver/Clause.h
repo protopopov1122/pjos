@@ -65,7 +65,7 @@ namespace sat_solver {
 
     class Clause : public ClauseView {
      public:
-        Clause(const Clause &);
+        Clause(const ClauseView &);
         Clause(Clause &&) = default;
 
         ~Clause() = default;

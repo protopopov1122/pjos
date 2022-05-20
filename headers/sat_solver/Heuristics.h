@@ -41,9 +41,17 @@ namespace sat_solver {
             std::size_t num_of_variables = this->formula.NumOfVariables();
             std::size_t num_of_scores = this->scores.size();
             
-            for (std::size_t i = num_of_scores; i < num_of_variables; i++) {
-                this->scores.push_back(this->variable_stats(i + 1));
-                this->ordered_variables.push_back(i + 1);
+            if (num_of_scores < num_of_variables) {
+                for (std::size_t i = num_of_scores; i < num_of_variables; i++) {
+                    this->scores.push_back(this->variable_stats(i + 1));
+                    this->ordered_variables.push_back(i + 1);
+                }
+            } else if (num_of_scores > num_of_variables) {
+                this->scores.erase(this->scores.begin() + num_of_variables, this->scores.end());
+                auto iterator = std::remove_if(this->ordered_variables.begin(), this->ordered_variables.end(), [num_of_variables](std::size_t variable) {
+                    return variable > num_of_variables;
+                });
+                this->ordered_variables.erase(iterator, this->ordered_variables.end());
             }
 
             std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});

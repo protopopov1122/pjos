@@ -177,6 +177,32 @@ namespace sat_solver {
             watcher_iter->Rescan(this->assignment);
         }
 
+        void DetachClause(std::size_t index, const ClauseView &) {
+            this->assignment.SetNumOfVariables(this->formula.NumOfVariables());
+            this->trail.SetNumOfVariables(this->formula.NumOfVariables());
+            if (static_cast<std::size_t>(this->formula.NumOfVariables()) < this->variable_index.size()) {
+                this->variable_index.erase(this->variable_index.begin() + this->formula.NumOfVariables(), this->variable_index.end());
+            }
+
+            for (auto &var_index : this->variable_index) {
+                auto iterator = std::remove(var_index.positive_clauses.begin(), var_index.positive_clauses.end(), index);
+                var_index.positive_clauses.erase(iterator, var_index.positive_clauses.end());
+                iterator = std::remove(var_index.negative_clauses.begin(), var_index.negative_clauses.end(), index);
+                var_index.negative_clauses.erase(iterator, var_index.negative_clauses.end());
+
+                auto watcher_map = [index](auto watcher_index) {
+                    if (watcher_index <= index) {
+                        return watcher_index;
+                    } else {
+                        return watcher_index - 1;
+                    }
+                };
+                std::transform(var_index.positive_clauses.begin(), var_index.positive_clauses.end(), var_index.positive_clauses.begin(), watcher_map);
+                std::transform(var_index.negative_clauses.begin(), var_index.negative_clauses.end(), var_index.negative_clauses.begin(), watcher_map);
+            }
+            this->watchers.erase(this->watchers.begin() + index);
+        }
+
         void AssignPureLiterals() {
             for (Literal::Int variable = 1; variable <= this->formula.NumOfVariables(); variable++) {
                 auto polarity = this->VariableIndex(variable).polarity;
@@ -221,6 +247,12 @@ namespace sat_solver {
             const auto &view = this->owned_formula.AppendClause(std::move(clause));
             static_cast<C *>(this)->AttachClause(this->owned_formula.NumOfClauses() - 1, view);
             return view;
+        }
+
+        void RemoveClause(std::size_t index) {
+            const auto &view = this->owned_formula[index];
+            static_cast<C *>(this)->DetachClause(index, view);
+            this->owned_formula.RemoveClause(index);
         }
 
      protected:

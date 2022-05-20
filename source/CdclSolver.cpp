@@ -122,6 +122,15 @@ namespace sat_solver {
         this->vsids.FormulaUpdated();
     }
 
+    void CdclSolver::DetachClause(std::size_t clause_index, const ClauseView &clause) {
+        this->BaseSolver<CdclSolver>::DetachClause(clause_index, clause);
+
+        if (static_cast<std::size_t>(this->formula.NumOfVariables()) < this->analysis_track.size()) {
+            this->analysis_track.erase(this->analysis_track.begin() + this->formula.NumOfVariables(), this->analysis_track.end());
+        }
+        this->vsids.FormulaUpdated();
+    }
+
     void CdclSolver::OnVariableAssignment(Literal::Int variable, VariableAssignment) {
         this->vsids.VariableAssigned(variable);
     }

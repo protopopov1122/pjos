@@ -41,10 +41,10 @@ namespace sat_solver {
     Clause::Clause(std::unique_ptr<Literal[]> clause, std::size_t clause_length, Literal::Int num_of_variables)
         : ClauseView::ClauseView{clause.get(), clause_length, num_of_variables}, clause{std::move(clause)} {}
     
-    Clause::Clause(const Clause &other)
-        : ClauseView{nullptr, other.clause_length, other.num_of_variables}, clause{nullptr} {
+    Clause::Clause(const ClauseView &other)
+        : ClauseView{nullptr, other.Length(), other.NumOfVariables()}, clause{nullptr} {
         
-        this->clause = std::make_unique<Literal[]>(other.clause_length);
+        this->clause = std::make_unique<Literal[]>(other.Length());
         this->ClauseView::clause = this->clause.get();
         std::copy_n(other.begin(), this->clause_length, this->clause.get());
     }

@@ -21,7 +21,7 @@ namespace sat_solver {
         SolverStatus Solve();
     };
 
-    class ModifiableDpllSolver : public ModifiableSolverBase<DpllSolver>, public DpllSolver {
+    class ModifiableDpllSolver : public ModifiableSolverBase<ModifiableDpllSolver>, public DpllSolver {
      public:
         ModifiableDpllSolver(Formula);
         ModifiableDpllSolver(const ModifiableDpllSolver &) = default;
@@ -58,6 +58,7 @@ namespace sat_solver {
 
         bool Backjump(std::size_t);
         void AttachClause(std::size_t, const ClauseView &);
+        void DetachClause(std::size_t, const ClauseView &);
         void OnVariableAssignment(Literal::Int, VariableAssignment);
 
         std::pair<Clause, std::size_t> AnalyzeConflict(const ClauseView &);

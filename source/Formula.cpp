@@ -17,6 +17,15 @@ namespace sat_solver {
         return view;
     }
 
+    bool Formula::RemoveClause(std::size_t index) {
+        if (index < this->clauses.size()) {
+            this->clauses.erase(this->clauses.begin() + index);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     FormulaBuilder::FormulaBuilder(Formula &formula)
         : formula{formula}, clause_builder{}, new_clause{true} {}
 

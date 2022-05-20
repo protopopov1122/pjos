@@ -127,6 +127,7 @@ namespace sat_solver {
         IteratorType end() const;
 
         const ClauseView &AppendClause(Clause);
+        bool RemoveClause(std::size_t);
 
      private:
         std::vector<Clause> clauses{};
