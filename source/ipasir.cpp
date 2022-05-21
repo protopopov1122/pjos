@@ -21,6 +21,7 @@ struct ipasir_solver {
     sat_solver::CdclSolver solver{};
     sat_solver::ClauseBuilder clause_builder{};
     std::vector<sat_solver::Literal> assumptions{};
+    std::vector<sat_solver::Literal> final_conflict{};
 };
 
 IPASIR_API const char * ipasir_signature () {
@@ -85,7 +86,8 @@ IPASIR_API void ipasir_assume (void * solver, int32_t lit) {
 IPASIR_API int ipasir_solve (void * solver) {
     try {
         ipasir_solver *isolver = static_cast<ipasir_solver *>(solver);
-        auto res = isolver->solver.Solve(isolver->assumptions.begin(), isolver->assumptions.end());
+        isolver->final_conflict.clear();
+        auto res = isolver->solver.Solve(isolver->assumptions.begin(), isolver->assumptions.end(), std::back_inserter(isolver->final_conflict));
         isolver->assumptions.clear();
         switch (res) {
             case sat_solver::SolverStatus::Unknown:
@@ -132,10 +134,18 @@ IPASIR_API int32_t ipasir_val (void * solver, int32_t lit) {
     return 0;
 }
 
-IPASIR_API int ipasir_failed (void *, int32_t) {
-    std::cerr << "ipasir_failed: not implemented yet" << std::endl;
-    ABORT();
-    return 0;
+IPASIR_API int ipasir_failed (void *solver, int32_t lit) {
+    try {
+        ipasir_solver *isolver = static_cast<ipasir_solver *>(solver);
+        auto it = std::find(isolver->final_conflict.begin(), isolver->final_conflict.end(), lit);
+        return it != isolver->final_conflict.end() ? 1 : 0;
+    } catch (const std::exception &ex) {
+        std::cerr << "ipasir_failed: " << ex.what() << std::endl;
+        ABORT();
+    } catch (...) {
+        std::cerr << "ipasir_failed: caught an unknown exception" << std::endl;
+        ABORT();
+    }
 }
 
 IPASIR_API void ipasir_set_terminate (void *, void *, int (*)(void *)) {
