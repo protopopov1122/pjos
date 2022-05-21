@@ -20,9 +20,11 @@ sat_solver_source = [
   'source/Formula.cpp',
   'source/Literal.cpp',
   'source/Watcher.cpp',
+  'source/ipasir.cpp',
   'source/main.cpp'
 ]
 
-sat_solver_headers = include_directories('headers')
+sat_solver_headers = include_directories('headers', 'ipasir')
 sat_solver = executable('sat_solver', sat_solver_source,
+  cpp_args : ['-DIPASIR_ENABLE', '-DIPASIR_ABORT_ON_ERROR'],
   include_directories : [sat_solver_headers])

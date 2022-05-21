@@ -18,6 +18,8 @@ namespace sat_solver {
         DpllSolver &operator=(const DpllSolver &) = default;
         DpllSolver &operator=(DpllSolver &&) = default;
 
+        static const std::string &Signature();
+
         friend class BaseSolver<DpllSolver>;
 
      private:
@@ -26,6 +28,7 @@ namespace sat_solver {
 
     class ModifiableDpllSolver : public ModifiableSolverBase<ModifiableDpllSolver>, public DpllSolver {
      public:
+        ModifiableDpllSolver();
         ModifiableDpllSolver(Formula);
         ModifiableDpllSolver(const ModifiableDpllSolver &) = default;
         ModifiableDpllSolver(ModifiableDpllSolver &&) = default;
@@ -38,6 +41,7 @@ namespace sat_solver {
 
     class CdclSolver : public ModifiableSolverBase<CdclSolver>, public BaseSolver<CdclSolver> {
      public:
+        CdclSolver();
         CdclSolver(Formula);
         CdclSolver(const CdclSolver &) = default;
         CdclSolver(CdclSolver &&) = default;
@@ -47,6 +51,7 @@ namespace sat_solver {
         CdclSolver &operator=(const CdclSolver &) = default;
         CdclSolver &operator=(CdclSolver &&) = default;
 
+        static const std::string &Signature();
 
         friend class ModifiableSolverBase<CdclSolver>;
         friend class BaseSolver<CdclSolver>;

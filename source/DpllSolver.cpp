@@ -7,6 +7,11 @@ namespace sat_solver {
     DpllSolver::DpllSolver(const Formula &formula)
         : BaseSolver::BaseSolver{formula} {}
 
+    const std::string &DpllSolver::Signature() {
+        static std::string sig{"SAT Solver (DPLL)"};
+        return sig;
+    }
+
     SolverStatus DpllSolver::SolveImpl() {
         auto pending_assignments_iter = this->pending_assignments.begin();
         for (;;) {
@@ -58,6 +63,9 @@ namespace sat_solver {
             }
         }
     }
+
+    ModifiableDpllSolver::ModifiableDpllSolver()
+        : ModifiableDpllSolver::ModifiableDpllSolver(Formula{}) {}
 
     ModifiableDpllSolver::ModifiableDpllSolver(Formula formula)
         : ModifiableSolverBase::ModifiableSolverBase{std::move(formula)},

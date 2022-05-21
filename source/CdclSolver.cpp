@@ -9,11 +9,19 @@ namespace sat_solver {
         return index_entry.positive_clauses.size() + index_entry.negative_clauses.size();
     }
 
+    CdclSolver::CdclSolver()
+        : CdclSolver::CdclSolver(Formula{}) {}
+
     CdclSolver::CdclSolver(Formula formula)
         : ModifiableSolverBase::ModifiableSolverBase(std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
           vsids{this->formula, this->assignment, VariableOccurences{*this}} {}
+
+    const std::string &CdclSolver::Signature() {
+        static std::string sig{"SAT Solver (CDCL)"};
+        return sig;
+    }
 
     SolverStatus CdclSolver::SolveImpl() {
         this->ScanPureLiterals();
