@@ -4,6 +4,10 @@ if meson.get_compiler('cpp').get_id() == 'gcc' or meson.get_compiler('cpp').get_
   add_project_arguments('-pedantic', language : 'cpp')
 endif
 
+if get_option('buildtype').startswith('debug')
+  add_project_arguments('-DENABLE_DEBUG_VALIDATIONS', language : 'cpp')
+endif
+
 sat_solver_source = [
   'source/Assignment.cpp',
   'source/CdclSolver.cpp',

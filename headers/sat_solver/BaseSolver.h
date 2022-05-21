@@ -25,18 +25,32 @@ namespace sat_solver {
 
         template <typename I>
         SolverStatus Solve(I assumptions_iter, I assumptions_end) {
-            static_cast<C *>(this)->ResetState();
+            if (!this->fresh_solver) {
+                static_cast<C *>(this)->ResetState();
+            }
+            this->fresh_solver = false;
             for (; assumptions_iter != assumptions_end; std::advance(assumptions_iter, 1)) {
                 auto literal = *assumptions_iter;
                 auto [variable, var_assignment] = literal.Assignment();
                 this->pending_assignments.emplace_back(variable, var_assignment, true);
             }
 
-            return static_cast<C *>(this)->SolveImpl();
+            auto result = static_cast<C *>(this)->SolveImpl();
+#ifdef ENABLE_DEBUG_VALIDATIONS
+            if (result == SolverStatus::Satisfied) {
+                for (auto [variable, variable_assignment, is_assumption] : this->pending_assignments) {
+                    assert(!is_assumption || this->GetAssignment()[variable] != FlipVariableAssignment(variable_assignment));
+                }
+            }
+#endif
+            return result;
         }
 
         SolverStatus Solve() {
-            static_cast<C *>(this)->ResetState();
+            if (!this->fresh_solver) {
+                static_cast<C *>(this)->ResetState();
+            }
+            this->fresh_solver = false;
             return static_cast<C *>(this)->SolveImpl();
         }
 
@@ -247,20 +261,45 @@ namespace sat_solver {
         void OnVariableAssignment(Literal::Int, VariableAssignment) {}
 
         void ResetState() {
-            if (!this->clean_state) {
-                this->clean_state = true;
-                this->pending_assignments.clear();
-                this->assignment.Reset();
-                this->trail.Reset();
-                for (auto &watcher : this->watchers) {
-                    watcher.Rescan(this->assignment);
+            this->pending_assignments.clear();
+            this->assignment.Reset();
+            this->trail.Reset();
+            for (auto &watcher : this->watchers) {
+                watcher.Rescan(this->assignment);
+            }
+        }
+
+        bool PerformPendingAssignment(Literal::Int variable, VariableAssignment variable_assignment, bool is_assumption) {
+            auto current_assignment = this->assignment[variable];
+            if (is_assumption) {
+                if (current_assignment == VariableAssignment::Unassigned) {
+                    this->Assign(variable, variable_assignment);
+                    this->trail.Assumption(variable, variable_assignment);
+                } else if (current_assignment == variable_assignment) {
+                    this->trail.Assumption(variable, variable_assignment);
+                } else {
+                    return false;
+                }
+            } else if (current_assignment == VariableAssignment::Unassigned) {
+                this->Assign(variable, variable_assignment);
+                this->trail.Decision(variable, variable_assignment);
+            }
+            return true;
+        }
+
+        template <typename I>
+        bool VerifyPendingAssignments(I iter, I end) {
+            for (; iter != end; std::advance(iter, 1)) {
+                auto [variable, variable_assignment, is_assumption] = *iter;
+                auto current_assignment = this->assignment[variable];
+                if (is_assumption && current_assignment != VariableAssignment::Unassigned && current_assignment != variable_assignment) {
+                    return false;
                 }
             }
-            this->clean_state = false;
+            return true;
         }
 
         const Formula &formula;
-        bool clean_state{true};
         std::vector<VariableIndexEntry> variable_index{};
         std::vector<Watcher> watchers{};
         Assignment assignment;
@@ -268,6 +307,9 @@ namespace sat_solver {
         std::vector<std::tuple<Literal::Int, VariableAssignment, bool>> pending_assignments{};
 
         static constexpr std::size_t ClauseUndef = ~static_cast<std::size_t>(0);
+
+     private:
+        bool fresh_solver{true};
     };
 
     template <typename C>

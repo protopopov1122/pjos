@@ -31,23 +31,31 @@ namespace sat_solver {
         this->trail.emplace_back(variable, assn, ReasonAssumption, ++this->level);
     }
 
-    std::optional<DecisionTrail::Entry> DecisionTrail::Undo() {
+    const DecisionTrail::Entry *DecisionTrail::Top() {
         while (!this->trail.empty() && static_cast<std::size_t>(this->trail.back().variable) > this->var_index.size()) {
             this->trail.pop_back();
         }
-        if (this->trail.empty()) {
-            return std::optional<DecisionTrail::Entry>{};
-        }
-
-        auto entry = this->trail.back();
-        this->trail.pop_back();
-        this->var_index[entry.variable - 1] = EmptyIndex;
         if (!this->trail.empty()) {
-            this->level = this->trail.back().level;
+            return std::addressof(this->trail.back());
         } else {
-            this->level = 0;
+            return nullptr;
         }
-        return entry;
+    }
+
+    void DecisionTrail::Pop() {
+        while (!this->trail.empty() && static_cast<std::size_t>(this->trail.back().variable) > this->var_index.size()) {
+            this->trail.pop_back();
+        }
+        if (!this->trail.empty()) {
+            auto &entry = this->trail.back();
+            this->var_index[entry.variable - 1] = EmptyIndex;
+            this->trail.pop_back();
+            if (!this->trail.empty()) {
+                this->level = this->trail.back().level;
+            } else {
+                this->level = 0;
+            }
+        }
     }
 
     void DecisionTrail::Reset() {

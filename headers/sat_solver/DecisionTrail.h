@@ -37,7 +37,8 @@ namespace sat_solver {
         void Propagation(Literal::Int, VariableAssignment);
         void Propagation(Literal::Int, VariableAssignment, std::size_t);
         void Assumption(Literal::Int, VariableAssignment);
-        std::optional<Entry> Undo();
+        const Entry *Top();
+        void Pop();
         void SetNumOfVariables(std::size_t);
         void Reset();
 

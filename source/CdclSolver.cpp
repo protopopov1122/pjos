@@ -22,7 +22,9 @@ namespace sat_solver {
         for (;;) {
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) {
-                return SolverStatus::Satisfied;
+                return this->VerifyPendingAssignments(pending_assignments_iter, this->pending_assignments.end())
+                    ? SolverStatus::Satisfied
+                    : SolverStatus::Unsatisfied;
             } else if (bcp_result == UnitPropagationResult::Unsat) {
                 if (this->trail.Level() == 0) {
                     return SolverStatus::Unsatisfied;
@@ -46,14 +48,8 @@ namespace sat_solver {
             } else {
                 auto [variable, variable_assignment, is_assumption] = *pending_assignments_iter;
                 std::advance(pending_assignments_iter, 1);
-                auto current_assignment = this->assignment[variable];
-                if (current_assignment == VariableAssignment::Unassigned) {
-                    this->Assign(variable, variable_assignment);
-                    if (is_assumption) {
-                        this->trail.Assumption(variable, variable_assignment);
-                    } else {
-                        this->trail.Decision(variable, variable_assignment);
-                    }
+                if (!this->PerformPendingAssignment(variable, variable_assignment, is_assumption)) {
+                    return SolverStatus::Unsatisfied;
                 }
             }
         }
@@ -105,6 +101,10 @@ namespace sat_solver {
         const auto &trail_entry = this->trail[trail_index];
         learned_clause.Add(Literal{trail_entry.variable, FlipVariableAssignment(trail_entry.assignment)});
         this->vsids.VariableActive(trail_entry.variable);
+        assert(trail_entry.level > 0);
+        if (backjump_level == 0) {
+            backjump_level = std::max(backjump_level, trail_entry.level - 1);
+        }
         assert(trail_entry.level == this->trail.Level());
         assert(backjump_level < this->trail.Level());
 
@@ -117,12 +117,13 @@ namespace sat_solver {
 
     bool CdclSolver::Backjump(std::size_t level) {
         while (this->trail.Level() > level) {
-            auto trail_entry = this->trail.Undo();
-            if (!trail_entry.has_value()) {
+            auto trail_entry = this->trail.Top();
+            if (trail_entry == nullptr || trail_entry->reason == DecisionTrail::ReasonAssumption) {
                 return false;
             }
 
             this->Assign(trail_entry->variable, VariableAssignment::Unassigned);
+            this->trail.Pop();
         }
         return true;
     }

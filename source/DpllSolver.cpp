@@ -18,8 +18,8 @@ namespace sat_solver {
                 VariableAssignment assignment;
                 bool undo_decision = true;
                 while (undo_decision) {
-                    auto trail_entry = this->trail.Undo();
-                    if (!trail_entry.has_value()) {
+                    auto trail_entry = this->trail.Top();
+                    if (trail_entry == nullptr) {
                         return SolverStatus::Unsatisfied;
                     }
 
@@ -30,6 +30,7 @@ namespace sat_solver {
                         undo_decision = false;
                         assignment = trail_entry->assignment;
                     }
+                    this->trail.Pop();
                 }
 
                 auto new_assignment = FlipVariableAssignment(assignment);
@@ -47,14 +48,8 @@ namespace sat_solver {
             } else {
                 auto [variable, variable_assignment, is_assumption] = *pending_assignments_iter;
                 std::advance(pending_assignments_iter, 1);
-                auto current_assignment = this->assignment[variable];
-                if (current_assignment == VariableAssignment::Unassigned) {
-                    this->Assign(variable, variable_assignment);
-                    if (is_assumption) {
-                        this->trail.Assumption(variable, variable_assignment);
-                    } else {
-                        this->trail.Decision(variable, variable_assignment);
-                    }
+                if (!this->PerformPendingAssignment(variable, variable_assignment, is_assumption)) {
+                    return SolverStatus::Unsatisfied;
                 }
             }
         }
