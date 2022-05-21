@@ -31,7 +31,7 @@ namespace sat_solver {
             }
 
             this->ordered_variables.clear();
-            for (Literal::Int i = 1; i <= this->formula.NumOfVariables(); i++) {
+            for (Literal::UInt i = 1; i <= this->formula.NumOfVariables(); i++) {
                 this->ordered_variables.push_back(i);
             }
             std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
@@ -57,7 +57,7 @@ namespace sat_solver {
             std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
         }
 
-        void VariableActive(Literal::Int variable) {
+        void VariableActive(Literal::UInt variable) {
             auto &score = this->scores[variable - 1];
             score += ScoreIncrement;
             if (score > RescoreThreshold) {
@@ -69,11 +69,11 @@ namespace sat_solver {
             std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
         }
 
-        void VariableAssigned(Literal::Int) {
+        void VariableAssigned(Literal::UInt) {
             std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
         }
      
-        Literal::Int TopVariable() {
+        Literal::UInt TopVariable() {
             if (this->ordered_variables.empty()) {
                 return Literal::Terminator;
             } else {
@@ -83,7 +83,7 @@ namespace sat_solver {
 
      private:
         struct Comparator {
-            bool operator()(Literal::Int variable1, Literal::Int variable2) const {
+            bool operator()(Literal::UInt variable1, Literal::UInt variable2) const {
                 auto score1 = this->vsids.assignment[variable1] == VariableAssignment::Unassigned
                     ? this->vsids.scores[variable1 - 1]
                     : -1;
@@ -101,7 +101,7 @@ namespace sat_solver {
         const Assignment &assignment;
         T variable_stats;
         std::vector<std::int64_t> scores;
-        std::vector<Literal::Int> ordered_variables;
+        std::vector<Literal::UInt> ordered_variables;
     };
 }
 

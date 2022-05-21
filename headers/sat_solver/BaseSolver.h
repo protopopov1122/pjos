@@ -101,7 +101,7 @@ namespace sat_solver {
         BaseSolver(const Formula &formula)
             : formula{formula},
             variable_index(formula.NumOfVariables(), VariableIndexEntry{}),
-            assignment{static_cast<std::size_t>(formula.NumOfVariables())}, trail{static_cast<std::size_t>(formula.NumOfVariables())} {
+            assignment{formula.NumOfVariables()}, trail{formula.NumOfVariables()} {
             
             this->Rebuild();
         }
@@ -118,11 +118,11 @@ namespace sat_solver {
             }
         }
 
-        VariableIndexEntry &VariableIndex(Literal::Int variable) {
+        VariableIndexEntry &VariableIndex(Literal::UInt variable) {
             return this->variable_index[variable - 1];
         }
 
-        void UpdateWatchers(Literal::Int variable) {
+        void UpdateWatchers(Literal::UInt variable) {
             auto &var_index = this->VariableIndex(variable);
             for (auto affected_watcher : var_index.positive_clauses) {
                 this->watchers[affected_watcher].Update(this->assignment, variable);
@@ -132,7 +132,7 @@ namespace sat_solver {
             }
         }
 
-        void Assign(Literal::Int variable, VariableAssignment assignment) {
+        void Assign(Literal::UInt variable, VariableAssignment assignment) {
             this->assignment[variable] = assignment;
             this->UpdateWatchers(variable);
             static_cast<C *>(this)->OnVariableAssignment(variable, assignment);
@@ -215,7 +215,7 @@ namespace sat_solver {
             this->ResetStatus();
             this->assignment.SetNumOfVariables(this->formula.NumOfVariables());
             this->trail.SetNumOfVariables(this->formula.NumOfVariables());
-            if (static_cast<std::size_t>(this->formula.NumOfVariables()) > this->variable_index.size()) {
+            if (this->formula.NumOfVariables() > this->variable_index.size()) {
                 this->variable_index.insert(this->variable_index.end(), this->formula.NumOfVariables() - this->variable_index.size(), VariableIndexEntry{});
             }
 
@@ -228,7 +228,7 @@ namespace sat_solver {
             this->ResetStatus();
             this->assignment.SetNumOfVariables(this->formula.NumOfVariables());
             this->trail.SetNumOfVariables(this->formula.NumOfVariables());
-            if (static_cast<std::size_t>(this->formula.NumOfVariables()) < this->variable_index.size()) {
+            if (this->formula.NumOfVariables() < this->variable_index.size()) {
                 this->variable_index.erase(this->variable_index.begin() + this->formula.NumOfVariables(), this->variable_index.end());
             }
 
@@ -252,7 +252,7 @@ namespace sat_solver {
         }
 
         void ScanPureLiterals() {
-            for (Literal::Int variable = 1; variable <= this->formula.NumOfVariables(); variable++) {
+            for (Literal::UInt variable = 1; variable <= this->formula.NumOfVariables(); variable++) {
                 auto polarity = this->VariableIndex(variable).polarity;
                 if (this->assignment[variable] != VariableAssignment::Unassigned) {
                     continue;
@@ -275,7 +275,7 @@ namespace sat_solver {
             }
         }
 
-        void OnVariableAssignment(Literal::Int, VariableAssignment) {}
+        void OnVariableAssignment(Literal::UInt, VariableAssignment) {}
 
         void ResetState() {
             this->pending_assignments.clear();
@@ -286,7 +286,7 @@ namespace sat_solver {
             }
         }
 
-        bool PerformPendingAssignment(Literal::Int variable, VariableAssignment variable_assignment, bool is_assumption) {
+        bool PerformPendingAssignment(Literal::UInt variable, VariableAssignment variable_assignment, bool is_assumption) {
             auto current_assignment = this->assignment[variable];
             if (is_assumption) {
                 if (current_assignment == VariableAssignment::Unassigned) {
@@ -322,7 +322,7 @@ namespace sat_solver {
         std::vector<Watcher> watchers{};
         Assignment assignment;
         DecisionTrail trail;
-        std::vector<std::tuple<Literal::Int, VariableAssignment, bool>> pending_assignments{};
+        std::vector<std::tuple<Literal::UInt, VariableAssignment, bool>> pending_assignments{};
         std::atomic_bool interrupt_requested{false};
 
         static constexpr std::size_t ClauseUndef = ~static_cast<std::size_t>(0);

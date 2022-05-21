@@ -23,7 +23,7 @@ namespace sat_solver {
             if (bcp_result == UnitPropagationResult::Sat) {
                 return SolverStatus::Satisfied;
             } else if (bcp_result == UnitPropagationResult::Unsat) {
-                Literal::Int variable;
+                Literal::UInt variable;
                 VariableAssignment assignment;
                 bool undo_decision = true;
                 while (undo_decision) {

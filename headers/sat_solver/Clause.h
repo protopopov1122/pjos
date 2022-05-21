@@ -20,7 +20,7 @@ namespace sat_solver {
         ClauseView &operator=(const ClauseView &) = default;
         ClauseView &operator=(ClauseView &&) = default;
 
-        bool HasVariable(Literal::Int) const;
+        bool HasVariable(Literal::UInt) const;
         IteratorType FindLiteral(Literal) const;
 
         inline bool HasLiteral(Literal literal) const {
@@ -35,7 +35,7 @@ namespace sat_solver {
            return this->clause_length == 0;
         }
 
-        inline Literal::Int NumOfVariables() const {
+        inline Literal::UInt NumOfVariables() const {
            return this->num_of_variables;
         }
 
@@ -56,11 +56,11 @@ namespace sat_solver {
         friend void swap(ClauseView &, ClauseView &);
 
      protected:
-        ClauseView(const Literal *, std::size_t, Literal::Int);
+        ClauseView(const Literal *, std::size_t, Literal::UInt);
 
         const Literal *clause;
         std::size_t clause_length;
-        Literal::Int num_of_variables;
+        Literal::UInt num_of_variables;
     };
 
     class Clause : public ClauseView {
@@ -81,7 +81,7 @@ namespace sat_solver {
         friend class ClauseBuilder;
 
      private:
-        Clause(std::unique_ptr<Literal[]>, std::size_t, Literal::Int);
+        Clause(std::unique_ptr<Literal[]>, std::size_t, Literal::UInt);
 
         std::unique_ptr<Literal[]> clause;
     };
@@ -103,7 +103,7 @@ namespace sat_solver {
 
      private:
         std::set<Literal> literals;
-        Literal::Int num_of_variables{Literal::Terminator};
+        Literal::UInt num_of_variables{0};
     };
 }
 

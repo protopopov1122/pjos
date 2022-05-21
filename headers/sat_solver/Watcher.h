@@ -32,7 +32,7 @@ namespace sat_solver {
             return this->watched_literals;
         }
 
-        void Update(const Assignment &, Literal::Int);
+        void Update(const Assignment &, Literal::UInt);
         void Rescan(const Assignment &);
 
      private:

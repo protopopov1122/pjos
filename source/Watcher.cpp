@@ -19,8 +19,8 @@ namespace sat_solver {
         }
     }
 
-    void Watcher::Update(const Assignment &assn, Literal::Int assigned_variable) { // Incremental rescan of clause
-        if (static_cast<Literal::Int>(assn.NumOfVariables()) < this->clause.NumOfVariables()) {
+    void Watcher::Update(const Assignment &assn, Literal::UInt assigned_variable) { // Incremental rescan of clause
+        if (assn.NumOfVariables() < this->clause.NumOfVariables()) {
             throw SatError{SatErrorCode::InvalidParameter, "Provided assignment does not cover all clause literals"};
         }
 

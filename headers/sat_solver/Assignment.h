@@ -14,7 +14,7 @@ namespace sat_solver {
             using difference_type = typename std::iterator_traits<AssignmentIterator<I>>::difference_type;
 
          public:
-            AssignmentIterator(I iter, Literal::Int variable)
+            AssignmentIterator(I iter, Literal::UInt variable)
                 : iter{std::move(iter)}, variable{variable} {}
             
             AssignmentIterator(const AssignmentIterator &) = default;
@@ -81,7 +81,7 @@ namespace sat_solver {
                 return this->iter != other.iter;
             }
 
-            std::pair<Literal::Int, VariableAssignment> operator*() const {
+            std::pair<Literal::UInt, VariableAssignment> operator*() const {
                 return std::make_pair(this->variable, *this->iter);
             }
 
@@ -92,7 +92,7 @@ namespace sat_solver {
 
          private:
             I iter;
-            Literal::Int variable;
+            Literal::UInt variable;
         };
     }
 
@@ -144,7 +144,7 @@ namespace sat_solver {
 template <typename I>
 struct std::iterator_traits<sat_solver::internal::AssignmentIterator<I>> {
     using difference_type = std::ptrdiff_t;
-    using value_type = std::pair<sat_solver::Literal::Int, sat_solver::VariableAssignment>;
+    using value_type = std::pair<sat_solver::Literal::UInt, sat_solver::VariableAssignment>;
     using iterator_category = std::bidirectional_iterator_tag;
 };
 

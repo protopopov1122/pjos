@@ -4,7 +4,7 @@
 
 namespace sat_solver {
 
-    std::size_t CdclSolver::VariableOccurences::operator()(Literal::Int variable) const {
+    std::size_t CdclSolver::VariableOccurences::operator()(Literal::UInt variable) const {
         const auto &index_entry = this->solver.VariableIndex(variable);
         return index_entry.positive_clauses.size() + index_entry.negative_clauses.size();
     }
@@ -147,7 +147,7 @@ namespace sat_solver {
         return std::make_pair(learned_clause.Make(), backjump_level);
     }
 
-    BaseSolver<CdclSolver>::AnalysisTrackState &CdclSolver::AnalysisTrackOf(Literal::Int variable) {
+    BaseSolver<CdclSolver>::AnalysisTrackState &CdclSolver::AnalysisTrackOf(Literal::UInt variable) {
         return this->analysis_track[variable - 1];
     }
 
@@ -169,7 +169,7 @@ namespace sat_solver {
     void CdclSolver::AttachClause(std::size_t clause_index, const ClauseView &clause) {
         this->BaseSolver<CdclSolver>::AttachClause(clause_index, clause);
 
-        if (static_cast<std::size_t>(this->formula.NumOfVariables()) > this->analysis_track.size()) {
+        if (this->formula.NumOfVariables() > this->analysis_track.size()) {
             this->analysis_track.insert(this->analysis_track.end(), this->formula.NumOfVariables() - this->analysis_track.size(), AnalysisTrackState::Untracked);
         }
         this->vsids.FormulaUpdated();
@@ -178,13 +178,13 @@ namespace sat_solver {
     void CdclSolver::DetachClause(std::size_t clause_index, const ClauseView &clause) {
         this->BaseSolver<CdclSolver>::DetachClause(clause_index, clause);
 
-        if (static_cast<std::size_t>(this->formula.NumOfVariables()) < this->analysis_track.size()) {
+        if (this->formula.NumOfVariables() < this->analysis_track.size()) {
             this->analysis_track.erase(this->analysis_track.begin() + this->formula.NumOfVariables(), this->analysis_track.end());
         }
         this->vsids.FormulaUpdated();
     }
 
-    void CdclSolver::OnVariableAssignment(Literal::Int variable, VariableAssignment) {
+    void CdclSolver::OnVariableAssignment(Literal::UInt variable, VariableAssignment) {
         this->vsids.VariableAssigned(variable);
     }
 }

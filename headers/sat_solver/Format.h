@@ -52,7 +52,7 @@ namespace sat_solver {
             if (fmt.solver.Status() == SolverStatus::Satisfied) {
                 os << std::endl << "v ";
                 const auto &assn = fmt.solver.GetAssignment();
-                for (Literal::Int variable = 1; variable <= static_cast<Literal::Int>(assn.NumOfVariables()); variable++) {
+                for (Literal::UInt variable = 1; variable <= assn.NumOfVariables(); variable++) {
                     os << LiteralFormatter{Literal{variable, assn[variable]}} << ' ';
                 }
                 os << '0';

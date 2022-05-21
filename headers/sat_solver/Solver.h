@@ -72,7 +72,7 @@ namespace sat_solver {
 
      private:
         struct VariableOccurences {
-            std::size_t operator()(Literal::Int) const;
+            std::size_t operator()(Literal::UInt) const;
 
             CdclSolver &solver;
         };
@@ -81,10 +81,10 @@ namespace sat_solver {
         bool Backjump(std::size_t);
         void AttachClause(std::size_t, const ClauseView &);
         void DetachClause(std::size_t, const ClauseView &);
-        void OnVariableAssignment(Literal::Int, VariableAssignment);
+        void OnVariableAssignment(Literal::UInt, VariableAssignment);
 
         std::pair<Clause, std::size_t> AnalyzeConflict(const ClauseView &);
-        AnalysisTrackState &AnalysisTrackOf(Literal::Int);
+        AnalysisTrackState &AnalysisTrackOf(Literal::UInt);
         
         template <typename T>
         void AnalyzeFinalConflict(T conflict_clause_iter, T conflict_clause_end, bool assumption_clause) {

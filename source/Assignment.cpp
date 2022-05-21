@@ -11,7 +11,7 @@ namespace sat_solver {
     }
 
     Assignment::IteratorType Assignment::end() const {
-        return IteratorType{this->assignment.end(), static_cast<Literal::Int>(this->assignment.size() + 1)};
+        return IteratorType{this->assignment.end(), this->assignment.size() + 1};
     }
 
     Assignment &Assignment::Reset() {

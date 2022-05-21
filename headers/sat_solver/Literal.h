@@ -27,10 +27,11 @@ namespace sat_solver {
     class Literal {
      public:
         using Int = std::int_fast64_t;
+        using UInt = std::uint_fast64_t;
 
         Literal() = default;
         Literal(Int);
-        Literal(Int, VariableAssignment);
+        Literal(UInt, VariableAssignment);
         Literal(const Literal &) = default;
         Literal(Literal &&) = default;
 
@@ -43,11 +44,11 @@ namespace sat_solver {
             return this->literal;
         }
 
-        inline Int Variable() const {
+        inline UInt Variable() const {
             return std::abs(this->literal);
         }
 
-        inline std::pair<Int, VariableAssignment> Assignment() const {
+        inline std::pair<UInt, VariableAssignment> Assignment() const {
             return std::make_pair(this->Variable(), this->literal < 0
                 ? VariableAssignment::False
                 : VariableAssignment::True);

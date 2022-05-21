@@ -12,9 +12,9 @@ namespace sat_solver {
      public:
         using Reason = std::int64_t;
         struct Entry {
-            Entry(Literal::Int, VariableAssignment, Reason, std::size_t);
+            Entry(Literal::UInt, VariableAssignment, Reason, std::size_t);
 
-            Literal::Int variable;
+            Literal::UInt variable;
             VariableAssignment assignment;
             Reason reason;
             std::size_t level;
@@ -33,16 +33,16 @@ namespace sat_solver {
             return this->level;
         }
 
-        void Decision(Literal::Int, VariableAssignment);
-        void Propagation(Literal::Int, VariableAssignment);
-        void Propagation(Literal::Int, VariableAssignment, std::size_t);
-        void Assumption(Literal::Int, VariableAssignment);
+        void Decision(Literal::UInt, VariableAssignment);
+        void Propagation(Literal::UInt, VariableAssignment);
+        void Propagation(Literal::UInt, VariableAssignment, std::size_t);
+        void Assumption(Literal::UInt, VariableAssignment);
         const Entry *Top();
         void Pop();
         void SetNumOfVariables(std::size_t);
         void Reset();
 
-        const Entry *Find(Literal::Int variable) const;
+        const Entry *Find(Literal::UInt) const;
 
         inline std::size_t Length() const {
             return this->trail.size();

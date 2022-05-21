@@ -113,7 +113,7 @@ namespace sat_solver {
            return this->clauses.empty();
         }
 
-        inline Literal::Int NumOfVariables() const {
+        inline Literal::UInt NumOfVariables() const {
             return this->num_of_variables;
         }
 
@@ -131,7 +131,7 @@ namespace sat_solver {
 
      private:
         std::vector<Clause> clauses{};
-        Literal::Int num_of_variables{Literal::Terminator};
+        Literal::UInt num_of_variables{0};
     };
 
     class FormulaBuilder {

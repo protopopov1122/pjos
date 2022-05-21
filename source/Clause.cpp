@@ -8,10 +8,10 @@ namespace sat_solver {
         return l1.Variable() < l2.Variable();
     }
 
-    ClauseView::ClauseView(const Literal *clause, std::size_t clause_length, Literal::Int num_of_variables)
+    ClauseView::ClauseView(const Literal *clause, std::size_t clause_length, Literal::UInt num_of_variables)
         : clause{clause}, clause_length{clause_length}, num_of_variables{num_of_variables} {}
 
-    bool ClauseView::HasVariable(Literal::Int var) const {
+    bool ClauseView::HasVariable(Literal::UInt var) const {
         return std::binary_search(this->begin(), this->end(), var, var_comparator);
     }
 
@@ -38,7 +38,7 @@ namespace sat_solver {
         std::swap(c1.num_of_variables, c2.num_of_variables);
     }
 
-    Clause::Clause(std::unique_ptr<Literal[]> clause, std::size_t clause_length, Literal::Int num_of_variables)
+    Clause::Clause(std::unique_ptr<Literal[]> clause, std::size_t clause_length, Literal::UInt num_of_variables)
         : ClauseView::ClauseView{clause.get(), clause_length, num_of_variables}, clause{std::move(clause)} {}
     
     Clause::Clause(const ClauseView &other)
