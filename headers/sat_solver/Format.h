@@ -6,7 +6,9 @@
 #include "sat_solver/Clause.h"
 #include "sat_solver/Formula.h"
 #include "sat_solver/Assignment.h"
-#include <iosfwd>
+#include "sat_solver/BaseSolver.h"
+#include <iostream>
+#include <type_traits>
 
 namespace sat_solver {
 
@@ -32,11 +34,31 @@ namespace sat_solver {
             SolverStatus status;
         };
 
+        template <typename T>
+        struct SolverFormatter {
+            const T &solver;
+        };
+
         std::ostream &operator<<(std::ostream &, const LiteralFormatter &);
         std::ostream &operator<<(std::ostream &, const ClauseViewFormatter &);
         std::ostream &operator<<(std::ostream &, const FormulaFormatter &);
         std::ostream &operator<<(std::ostream &, const AssignmentFormatter &);
         std::ostream &operator<<(std::ostream &, const SolverStatusFormatter &);
+
+        template <typename T>
+        std::ostream &operator<<(std::ostream &os, const SolverFormatter<T> &fmt) {
+            os << "s " << Format(fmt.solver.Status());
+
+            if (fmt.solver.Status() == SolverStatus::Satisfied) {
+                os << std::endl << "v ";
+                const auto &assn = fmt.solver.GetAssignment();
+                for (Literal::Int variable = 1; variable <= static_cast<Literal::Int>(assn.NumOfVariables()); variable++) {
+                    os << LiteralFormatter{Literal{variable, assn[variable]}} << ' ';
+                }
+                os << '0';
+            }
+            return os;
+        }
     };
 
     internal::LiteralFormatter Format(Literal);
@@ -44,6 +66,12 @@ namespace sat_solver {
     internal::FormulaFormatter Format(const Formula &);
     internal::AssignmentFormatter Format(const Assignment &);
     internal::SolverStatusFormatter Format(SolverStatus);
+
+    template <typename T>
+    internal::SolverFormatter<T> Format(const T &solver) {
+        static_assert(std::is_base_of_v<BaseSolver<T>, T>);
+        return {solver};
+    }
 }
 
 #endif

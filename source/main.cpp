@@ -33,15 +33,7 @@ int main(int argc, const char **argv) {
         assumptions[0] = -1;
         status = solver.Solve(assumptions.begin(), assumptions.end());
     }
-    std::cerr << Format(status) << std::endl;
 
-    if (status == SolverStatus::Satisfied) {
-        ClauseBuilder builder{};
-        for (auto [variable, assignment] : solver.GetAssignment()) {
-            builder.Add(Literal{variable, assignment});
-        }
-        std::cout << Format(builder.Make()) << std::endl;
-    }
-
+    std::cout << Format(solver) << std::endl;
     return EXIT_SUCCESS;
 }

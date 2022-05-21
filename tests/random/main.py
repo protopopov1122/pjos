@@ -9,11 +9,11 @@ from pysat.formula import CNF
 from pysat.solvers import Solver
 
 class SolutionError(Exception):
-    def __init__(self, formula, status, solution):
+    def __init__(self, formula, stdout, stderr):
         super().__init__(self)
         self.formula = formula
-        self.status = status
-        self.solution = solution
+        self.stdout = stdout
+        self.stderr = stderr
 
     def __str__(self) -> str:
         errmsg = StringIO()
@@ -22,7 +22,7 @@ class SolutionError(Exception):
             self.formula.to_fp(errmsg)
         else:
             errmsg.write('None')
-        errmsg.write(f'\nStatus: {self.status}\nOutput: {self.solution}')
+        errmsg.write(f'\nstdout: {self.stdout}\nstderr: {self.stderr}')
         return errmsg.getvalue()
 
     def __repr__(self) -> str:
@@ -42,18 +42,21 @@ def run_solver(solver_executable, formula, time_budget):
         if time.time() > begin_timestamp + time_budget:
             process.kill()
             raise SolutionError(formula, None, None)
-    status = process.stderr.read().decode()
-    solution = process.stdout.read().decode()
+    output = process.stdout.read().decode()
+    stderr = process.stderr.read().decode()
 
     if exit_code != 0:
-        raise SolutionError(formula, status, solution)
+        raise SolutionError(formula, output, stderr)
 
-    if status.strip() == 'SATISFIABLE':
-        return [int(assn) for assn in solution.split(' ')][:-1]
-    elif status.strip() == 'UNSATISFIABLE':
+    if 's SATISFIABLE' in output:
+        solution_arr = [line.strip() for line in output.split('\n') if line.startswith('v ')]
+        if len(solution_arr) != 1:
+            raise SolutionError(formula, output, stderr)
+        return [int(assn) for assn in solution_arr[0][2:].split(' ')][:-1]
+    elif 's UNSATISFIABLE' in output:
         return None
     else:
-        raise SolutionError(formula, status, solution)
+        raise SolutionError(formula, output, stderr)
 
 def generate_formula(num_of_vars, num_of_clauses, max_clause_width):
     formula = CNF()
@@ -73,11 +76,11 @@ def solver_test(solver_executable, formula, time_budget):
         for assn in solution:
             solver.add_clause([assn])
         if not solver.solve():
-            raise SolutionError(formula, 'SAT', solution)
+            raise SolutionError(formula, f's SATISTIABLE\nv {" ".join(str(s) for s in solution)}', None)
         return True
     else:
         if solver.solve():
-            raise SolutionError(formula, 'UNSAT', None)
+            raise SolutionError(formula, 's UNSATISFIABLE', None)
         return False
 
 if __name__ == '__main__':
@@ -97,7 +100,6 @@ if __name__ == '__main__':
             sys.stdout.flush()
         print()
     except SolutionError as ex:
-        print(str(ex))
         traceback.print_exc()
         exit(-1)
     except:
