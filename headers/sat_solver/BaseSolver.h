@@ -7,6 +7,7 @@
 #include "sat_solver/Watcher.h"
 #include "sat_solver/DecisionTrail.h"
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <vector>
 
@@ -23,27 +24,38 @@ namespace sat_solver {
             return this->assignment;
         }
 
+        void Interrupt() {
+            this->interrupt_requested = true;
+        }
+
+        SolverStatus Status() const {
+            return this->current_status.load();
+        }
+
         template <typename I>
         SolverStatus Solve(I assumptions_iter, I assumptions_end) {
             if (!this->fresh_solver) {
                 static_cast<C *>(this)->ResetState();
             }
             this->fresh_solver = false;
+            this->interrupt_requested = false;
+            this->current_status = SolverStatus::Solving;
+
             for (; assumptions_iter != assumptions_end; std::advance(assumptions_iter, 1)) {
                 auto literal = *assumptions_iter;
                 auto [variable, var_assignment] = literal.Assignment();
                 this->pending_assignments.emplace_back(variable, var_assignment, true);
             }
 
-            auto result = static_cast<C *>(this)->SolveImpl();
+            this->current_status = static_cast<C *>(this)->SolveImpl();
 #ifdef ENABLE_DEBUG_VALIDATIONS
-            if (result == SolverStatus::Satisfied) {
+            if (this->current_status == SolverStatus::Satisfied) {
                 for (auto [variable, variable_assignment, is_assumption] : this->pending_assignments) {
                     assert(!is_assumption || this->GetAssignment()[variable] != FlipVariableAssignment(variable_assignment));
                 }
             }
 #endif
-            return result;
+            return this->current_status;
         }
 
         SolverStatus Solve() {
@@ -51,7 +63,10 @@ namespace sat_solver {
                 static_cast<C *>(this)->ResetState();
             }
             this->fresh_solver = false;
-            return static_cast<C *>(this)->SolveImpl();
+            this->interrupt_requested = false;
+            this->current_status = SolverStatus::Solving;
+            this->current_status = static_cast<C *>(this)->SolveImpl();
+            return this->current_status;
         }
 
         template <typename T>
@@ -197,6 +212,7 @@ namespace sat_solver {
         }
 
         void AttachClause(std::size_t clause_index, const ClauseView &clause) {
+            this->ResetStatus();
             this->assignment.SetNumOfVariables(this->formula.NumOfVariables());
             this->trail.SetNumOfVariables(this->formula.NumOfVariables());
             if (static_cast<std::size_t>(this->formula.NumOfVariables()) > this->variable_index.size()) {
@@ -209,6 +225,7 @@ namespace sat_solver {
         }
 
         void DetachClause(std::size_t index, const ClauseView &) {
+            this->ResetStatus();
             this->assignment.SetNumOfVariables(this->formula.NumOfVariables());
             this->trail.SetNumOfVariables(this->formula.NumOfVariables());
             if (static_cast<std::size_t>(this->formula.NumOfVariables()) < this->variable_index.size()) {
@@ -305,11 +322,28 @@ namespace sat_solver {
         Assignment assignment;
         DecisionTrail trail;
         std::vector<std::tuple<Literal::Int, VariableAssignment, bool>> pending_assignments{};
+        std::atomic_bool interrupt_requested{false};
 
         static constexpr std::size_t ClauseUndef = ~static_cast<std::size_t>(0);
 
      private:
+        void ResetStatus() {
+            auto expected = this->current_status.load();
+            do {
+                switch (expected) {
+                    case SolverStatus::Unknown:
+                    case SolverStatus::Solving:
+                        return;
+                    
+                    case SolverStatus::Satisfied:
+                    case SolverStatus::Unsatisfied:
+                        break;
+                }
+            } while (!this->current_status.compare_exchange_weak(expected, SolverStatus::Unknown));
+        }
+
         bool fresh_solver{true};
+        std::atomic<SolverStatus> current_status{SolverStatus::Unknown};
     };
 
     template <typename C>

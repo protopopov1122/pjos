@@ -13,7 +13,9 @@ namespace sat_solver {
 
     enum class SolverStatus {
         Unsatisfied,
-        Satisfied
+        Satisfied,
+        Unknown,
+        Solving
     };
 }
 

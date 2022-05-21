@@ -48,9 +48,9 @@ def run_solver(solver_executable, formula, time_budget):
     if exit_code != 0:
         raise SolutionError(formula, status, solution)
 
-    if status.strip() == 'SAT':
+    if status.strip() == 'SATISFIABLE':
         return [int(assn) for assn in solution.split(' ')][:-1]
-    elif status.strip() == 'UNSAT':
+    elif status.strip() == 'UNSATISFIABLE':
         return None
     else:
         raise SolutionError(formula, status, solution)

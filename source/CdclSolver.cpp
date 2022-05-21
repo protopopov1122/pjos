@@ -20,6 +20,10 @@ namespace sat_solver {
 
         auto pending_assignments_iter = this->pending_assignments.begin();
         for (;;) {
+            if (this->interrupt_requested.load()) {
+                return SolverStatus::Unknown;
+            }
+
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) {
                 return this->VerifyPendingAssignments(pending_assignments_iter, this->pending_assignments.end())

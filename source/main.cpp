@@ -1,6 +1,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <thread>
+#include <chrono>
 #include "sat_solver/Formula.h"
 #include "sat_solver/Format.h"
 #include "sat_solver/Dimacs.h"
@@ -40,5 +42,6 @@ int main(int argc, const char **argv) {
         }
         std::cout << Format(builder.Make()) << std::endl;
     }
+
     return EXIT_SUCCESS;
 }

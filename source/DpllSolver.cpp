@@ -10,6 +10,10 @@ namespace sat_solver {
     SolverStatus DpllSolver::SolveImpl() {
         auto pending_assignments_iter = this->pending_assignments.begin();
         for (;;) {
+            if (this->interrupt_requested.load()) {
+                return SolverStatus::Unknown;
+            }
+
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) {
                 return SolverStatus::Satisfied;

@@ -43,11 +43,19 @@ namespace sat_solver {
         std::ostream &operator<<(std::ostream &os, const SolverStatusFormatter &status) {
             switch (status.status) {
                 case SolverStatus::Satisfied:
-                    os << "SAT";
+                    os << "SATISFIABLE";
                     break;
 
                 case SolverStatus::Unsatisfied:
-                    os << "UNSAT";
+                    os << "UNSATISFIABLE";
+                    break;
+
+                case SolverStatus::Unknown:
+                    os << "UNKNOWN";
+                    break;
+
+                case SolverStatus::Solving:
+                    os << "SOLVING";
                     break;
             }
             return os;
