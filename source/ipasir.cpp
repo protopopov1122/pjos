@@ -1,7 +1,7 @@
-#ifdef IPASIR_ENABLE
+#ifdef SAT_SOLVER_IPASIR_INTERFACE_ENABLE
 
-#ifdef IPASIR_HEADER
-#include IPASIR_HEADER
+#ifdef SAT_SOLVER_IPASIR_INTERFACE_HEADER
+#include SAT_SOLVER_IPASIR_INTERFACE_HEADER
 #else
 #include "ipasir.h"
 #endif
@@ -11,7 +11,7 @@
 #include <iostream>
 #include <vector>
 
-#ifdef IPASIR_ABORT_ON_ERROR
+#ifdef SAT_SOLVER_IPASIR_INTERFACE_ABORT_ON_ERROR
 #define ABORT() std::abort()
 #else
 #define ABORT() ((void)0)

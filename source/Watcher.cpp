@@ -55,7 +55,7 @@ namespace sat_solver {
 
         this->UpdateStatus(assn);
 
-#ifdef ENABLE_DEBUG_VALIDATIONS
+#ifdef SAT_SOLVER_DEBUG_VALIDATIONS_ENABLE
         Watcher clone{*this};
         clone.Rescan(assn);
         assert(this->status == clone.status);

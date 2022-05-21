@@ -48,7 +48,7 @@ namespace sat_solver {
             }
 
             this->current_status = static_cast<C *>(this)->SolveImpl();
-#ifdef ENABLE_DEBUG_VALIDATIONS
+#ifdef SAT_SOLVER_DEBUG_VALIDATIONS_ENABLE
             if (this->current_status == SolverStatus::Satisfied) {
                 for (auto [variable, variable_assignment, is_assumption] : this->pending_assignments) {
                     assert(!is_assumption || this->GetAssignment()[variable] != FlipVariableAssignment(variable_assignment));
