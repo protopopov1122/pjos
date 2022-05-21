@@ -28,7 +28,8 @@ int main(int argc, const char **argv) {
         assumptions.push_back(1);
     }
 
-    auto status = solver.Solve(assumptions.begin(), assumptions.end());
+    std::vector<Literal> final_conflict;
+    auto status = solver.Solve(assumptions.begin(), assumptions.end(), std::back_inserter(final_conflict));
     if (status == SolverStatus::Unsatisfied && !assumptions.empty()) {
         assumptions[0] = -1;
         status = solver.Solve(assumptions.begin(), assumptions.end());

@@ -24,9 +24,12 @@ namespace sat_solver {
     }
 
     SolverStatus CdclSolver::SolveImpl() {
+        bool analyze_final_conflict = false;
+        std::swap(analyze_final_conflict, this->analyze_final_conflict);
         this->ScanPureLiterals();
 
         auto pending_assignments_iter = this->pending_assignments.begin();
+        std::size_t number_of_assumptions{0};
         for (;;) {
             if (this->interrupt_requested.load()) {
                 return SolverStatus::Unknown;
@@ -34,18 +37,32 @@ namespace sat_solver {
 
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) {
-                return this->VerifyPendingAssignments(pending_assignments_iter, this->pending_assignments.end())
-                    ? SolverStatus::Satisfied
-                    : SolverStatus::Unsatisfied;
+                Literal conflict[2];
+                if (this->VerifyPendingAssignments(pending_assignments_iter, this->pending_assignments.end(), conflict[0])) {
+                    return SolverStatus::Satisfied;
+                } else {
+                    if (analyze_final_conflict) {
+                        this->AnalyzeFinalConflict(&conflict[0], &conflict[1], true);
+                    }
+                    return SolverStatus::Unsatisfied;
+                }
             } else if (bcp_result == UnitPropagationResult::Unsat) {
                 if (this->trail.Level() == 0) {
+                    if (analyze_final_conflict) {
+                        const auto &conflict = this->formula[conflict_clause];
+                        this->AnalyzeFinalConflict(conflict.begin(), conflict.end(), false);
+                    }
                     return SolverStatus::Unsatisfied;
                 }
 
                 auto [learned_clause, backjump_level] = this->AnalyzeConflict(this->formula[conflict_clause]);
                 this->AppendClause(std::move(learned_clause));
                 
-                if (!this->Backjump(backjump_level)) {
+                if (backjump_level < number_of_assumptions || !this->Backjump(backjump_level)) {
+                    if (analyze_final_conflict) {
+                        const auto &conflict = this->formula[conflict_clause];
+                        this->AnalyzeFinalConflict(conflict.begin(), conflict.end(), false);
+                    }
                     return SolverStatus::Unsatisfied;
                 }
             } else if (pending_assignments_iter == this->pending_assignments.end()) {
@@ -61,7 +78,14 @@ namespace sat_solver {
                 auto [variable, variable_assignment, is_assumption] = *pending_assignments_iter;
                 std::advance(pending_assignments_iter, 1);
                 if (!this->PerformPendingAssignment(variable, variable_assignment, is_assumption)) {
+                    if (analyze_final_conflict) {
+                        Literal conflict[2] = {Literal{variable, variable_assignment}};
+                        this->AnalyzeFinalConflict(&conflict[0], &conflict[1], true);
+                    }
                     return SolverStatus::Unsatisfied;
+                }
+                if (is_assumption) {
+                    number_of_assumptions++;
                 }
             }
         }
@@ -130,9 +154,11 @@ namespace sat_solver {
     bool CdclSolver::Backjump(std::size_t level) {
         while (this->trail.Level() > level) {
             auto trail_entry = this->trail.Top();
-            if (trail_entry == nullptr || trail_entry->reason == DecisionTrail::ReasonAssumption) {
+            if (trail_entry == nullptr) {
                 return false;
             }
+
+            assert(trail_entry->reason != DecisionTrail::ReasonAssumption);
 
             this->Assign(trail_entry->variable, VariableAssignment::Unassigned);
             this->trail.Pop();

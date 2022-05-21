@@ -305,11 +305,12 @@ namespace sat_solver {
         }
 
         template <typename I>
-        bool VerifyPendingAssignments(I iter, I end) {
+        bool VerifyPendingAssignments(I iter, I end, Literal &conflict) {
             for (; iter != end; std::advance(iter, 1)) {
                 auto [variable, variable_assignment, is_assumption] = *iter;
                 auto current_assignment = this->assignment[variable];
                 if (is_assumption && current_assignment != VariableAssignment::Unassigned && current_assignment != variable_assignment) {
+                    conflict = Literal{variable, variable_assignment};
                     return false;
                 }
             }
