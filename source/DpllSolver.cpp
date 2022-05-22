@@ -1,6 +1,9 @@
 #include "sat_solver/Solver.h"
 #include "sat_solver/Format.h"
-#include <iostream>
+
+// This file contains simple implementation of DPLL solver.
+// The solver is not practical by itself, however may be used as a baseline
+// for debugging issues.
 
 namespace sat_solver {
 
@@ -20,41 +23,46 @@ namespace sat_solver {
             }
 
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
-            if (bcp_result == UnitPropagationResult::Sat) {
+            if (bcp_result == UnitPropagationResult::Sat) { // BCP satisfied the formula
                 return SolverStatus::Satisfied;
-            } else if (bcp_result == UnitPropagationResult::Unsat) {
+            } else if (bcp_result == UnitPropagationResult::Unsat) { // Conflict was encountered during BCP
                 Literal::UInt variable;
                 VariableAssignment assignment;
                 bool undo_decision = true;
-                while (undo_decision) {
+                while (undo_decision) { // Undo the last decision if possible
                     auto trail_entry = this->trail.Top();
-                    if (trail_entry == nullptr) {
+                    if (trail_entry == nullptr) { // There is no decision to undo, return UNSAT
                         return SolverStatus::Unsatisfied;
                     }
 
                     variable = trail_entry->variable;
-                    if (DecisionTrail::IsPropagatedFromClause(trail_entry->reason) || trail_entry->reason == DecisionTrail::ReasonPropagation) {
+                    if (DecisionTrail::IsPropagatedFromClause(trail_entry->reason) || trail_entry->reason == DecisionTrail::ReasonPropagation) { // Undo propagation
                         this->Assign(variable, VariableAssignment::Unassigned);
-                    } else {
+                    } else { // Remember the last decision
                         undo_decision = false;
                         assignment = trail_entry->assignment;
                     }
                     this->trail.Pop();
                 }
 
+                // Flip the last decision and proceed
                 auto new_assignment = FlipVariableAssignment(assignment);
                 this->trail.Propagation(variable, new_assignment);
                 this->Assign(variable, new_assignment);
-            } else if (pending_assignments_iter != this->pending_assignments.end()) {
+            } else if (pending_assignments_iter == this->pending_assignments.end()) { // There are no pending assignments.
+                                                                                      // Find an unassigned variable and assign it to true
+                bool made_decision = false;
                 for (std::int64_t variable = this->assignment.NumOfVariables(); variable > 0; variable--) {
                     auto assn = this->assignment[variable];
                     if (assn == VariableAssignment::Unassigned) {
                         this->trail.Decision(variable, VariableAssignment::True);
                         this->Assign(variable, VariableAssignment::True);
+                        made_decision = true;
                         break;
                     }
                 }
-            } else {
+                assert(made_decision);
+            } else { // There is pending assignment, perform it
                 auto [variable, variable_assignment, is_assumption] = *pending_assignments_iter;
                 std::advance(pending_assignments_iter, 1);
                 if (!this->PerformPendingAssignment(variable, variable_assignment, is_assumption)) {
