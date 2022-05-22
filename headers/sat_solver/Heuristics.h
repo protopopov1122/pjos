@@ -35,6 +35,7 @@ namespace sat_solver {
                 this->ordered_variables.push_back(i);
             }
             std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
+            this->update_heap = false;
         }
 
         void FormulaUpdated() {
@@ -55,6 +56,7 @@ namespace sat_solver {
             }
 
             std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
+            this->update_heap = false;
         }
 
         void VariableActive(Literal::UInt variable) {
@@ -66,14 +68,18 @@ namespace sat_solver {
                 }
             }
 
-            std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
+            this->update_heap = true;
         }
 
         void VariableAssigned(Literal::UInt) {
-            std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
+            this->update_heap = true;
         }
      
         Literal::UInt TopVariable() {
+            if (this->update_heap) {
+                std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
+                this->update_heap = false;
+            }
             if (this->ordered_variables.empty()) {
                 return Literal::Terminator;
             } else {
@@ -102,6 +108,7 @@ namespace sat_solver {
         T variable_stats;
         std::vector<std::int64_t> scores;
         std::vector<Literal::UInt> ordered_variables;
+        bool update_heap{false};
     };
 }
 
