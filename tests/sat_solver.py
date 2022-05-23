@@ -22,7 +22,7 @@ class SatSolver:
             output, error = process.communicate(input=dimacs.encode(), timeout=timeout)
         except subprocess.TimeoutExpired as ex:
             process.terminate()
-            raise SatSolverError('SAT solving timeout exceeded')
+            raise SatSolverError(f'SAT solving timeout exceeded:\nstdin:\n{dimacs}')
         if process.returncode != 0:
             raise SatSolverError(f'SAT solver exited with {process.returncode}:\nstdin:\n{dimacs}\nstdout:\n{output}\nstderr:{error}')
         
