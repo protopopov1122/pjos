@@ -2,25 +2,25 @@
 import sys
 import traceback
 import random
-from cnfgen import PigeonholePrinciple, RandomKCNF, CountingPrinciple
+from cnfgen import PigeonholePrinciple, RandomKCNF, CountingPrinciple, Shuffle, XorSubstitution
 from solver_test import run_solver_test
 
 def alg_php(solver_executable, time_budget, pigeons_min, pigeons_max, holes_min, holes_max):
     pigeons = random.randint(pigeons_min, pigeons_max)
     holes = random.randint(holes_min, holes_max)
-    cnf = PigeonholePrinciple(pigeons, holes)
+    cnf = Shuffle(PigeonholePrinciple(pigeons, holes))
     dimacs = cnf.dimacs()
     return run_solver_test(solver_executable, dimacs, time_budget)
 
 def alg_random(solver_executable, time_budget, k, n, m):
-    cnf = RandomKCNF(k, n, m)
+    cnf = XorSubstitution(RandomKCNF(k, n, m), 2)
     dimacs = cnf.dimacs()
     return run_solver_test(solver_executable, dimacs, time_budget)
 
 def alg_count(solver_executable, time_budget, m_min, m_max, p_min, p_max):
     m = random.randint(m_min, m_max)
     p = random.randint(p_min, p_max)
-    cnf = CountingPrinciple(m, p)
+    cnf = Shuffle(CountingPrinciple(m, p))
     dimacs = cnf.dimacs()
     return run_solver_test(solver_executable, dimacs, time_budget)
 
