@@ -7,13 +7,6 @@
 
 namespace sat_solver {
 
-    const VSIDSHeuristics<CdclSolver::VariableOccurences>::ScoringParameters CdclSolver::HeuristicsParameters = {
-        1e20,
-        1e-20,
-        1,
-        1.05
-    };
-
     std::size_t CdclSolver::VariableOccurences::operator()(Literal::UInt variable) const {
         const auto &index_entry = this->solver.VariableIndex(variable);
         return index_entry.positive_clauses.size() + index_entry.negative_clauses.size();
@@ -26,7 +19,7 @@ namespace sat_solver {
         : ModifiableSolverBase::ModifiableSolverBase(std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
-          vsids{this->formula, this->assignment, HeuristicsParameters, VariableOccurences{*this}} {}
+          evsids{this->formula, this->assignment, {1e20, 1e-20, 1, 1.05}, VariableOccurences{*this}} {}
 
     const std::string &CdclSolver::Signature() {
         static std::string sig{"SAT Solver (CDCL)"};
@@ -43,7 +36,7 @@ namespace sat_solver {
                 return SolverStatus::Unknown;
             }
 
-            this->vsids.DecayActivity();
+            this->evsids.NextIteration();
 
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) { // BCP satisfied the formula. Check whether all assumptions are also satisfied.
@@ -78,7 +71,7 @@ namespace sat_solver {
                     return SolverStatus::Unsatisfied;
                 }
             } else if (pending_assignments_iter == this->pending_assignments.end()) { // There are no pending assignments. Select variable for further assignment.
-                auto variable = this->vsids.TopVariable(); // The most active unassigned variable
+                auto variable = this->evsids.TopVariable(); // The most active unassigned variable
                 assert(variable != Literal::Terminator);
                 const auto &variable_index_entry = this->VariableIndex(variable);
 
@@ -134,7 +127,7 @@ namespace sat_solver {
                 } else { // The assignment is part of UIP cut, add it to learned clause
                     learned_clause.Add(Literal{variable, FlipVariableAssignment(trail_entry->assignment)});
                     backjump_level = std::max(backjump_level, trail_entry->level);
-                    this->vsids.VariableActive(trail_entry->variable);
+                    this->evsids.VariableActive(trail_entry->variable);
                 }
             }
             number_of_paths--;
@@ -155,7 +148,7 @@ namespace sat_solver {
         // Add the top-most decision/assumption to the learned clause
         const auto &trail_entry = this->trail[trail_index];
         learned_clause.Add(Literal{trail_entry.variable, FlipVariableAssignment(trail_entry.assignment)});
-        this->vsids.VariableActive(trail_entry.variable);
+        this->evsids.VariableActive(trail_entry.variable);
         assert(trail_entry.level > 0);
         if (backjump_level == 0) { // If no backjump level was found, jump to the one below current
             backjump_level = std::max(backjump_level, trail_entry.level - 1);
@@ -191,7 +184,7 @@ namespace sat_solver {
         if (this->formula.NumOfVariables() > this->analysis_track.size()) {
             this->analysis_track.insert(this->analysis_track.end(), this->formula.NumOfVariables() - this->analysis_track.size(), AnalysisTrackState::Untracked);
         }
-        this->vsids.FormulaUpdated();
+        this->evsids.FormulaUpdated();
     }
 
     void CdclSolver::DetachClause(std::size_t clause_index, const ClauseView &clause) { // Whenever the clause is detached, update analysis track and heuristics
@@ -200,10 +193,10 @@ namespace sat_solver {
         if (this->formula.NumOfVariables() < this->analysis_track.size()) {
             this->analysis_track.erase(this->analysis_track.begin() + this->formula.NumOfVariables(), this->analysis_track.end());
         }
-        this->vsids.FormulaUpdated();
+        this->evsids.FormulaUpdated();
     }
 
     void CdclSolver::OnVariableAssignment(Literal::UInt variable, VariableAssignment) { // Assignment was performed, update heuristics
-        this->vsids.VariableAssigned(variable);
+        this->evsids.VariableAssigned(variable);
     }
 }

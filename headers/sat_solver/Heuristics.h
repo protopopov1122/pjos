@@ -8,7 +8,7 @@
 namespace sat_solver {
 
     template <typename T>
-    class VSIDSHeuristics {
+    class EVSIDSHeuristics {
      public:
         struct ScoringParameters {
             double rescore_threshold;
@@ -17,7 +17,7 @@ namespace sat_solver {
             double decay_rate;
         };
 
-        VSIDSHeuristics(const Formula &formula, const Assignment &assignment, const ScoringParameters &scoring, T variable_stats)
+        EVSIDSHeuristics(const Formula &formula, const Assignment &assignment, const ScoringParameters &scoring, T variable_stats)
             : formula{formula}, assignment{assignment}, scoring{scoring}, variable_stats{variable_stats} {
             
             this->FormulaUpdated();
@@ -67,7 +67,7 @@ namespace sat_solver {
             this->update_heap = false;
         }
 
-        void DecayActivity() {
+        void NextIteration() {
             this->score_increment *= this->scoring.decay_rate;
         }
 
@@ -103,17 +103,17 @@ namespace sat_solver {
      private:
         struct Comparator {
             bool operator()(Literal::UInt variable1, Literal::UInt variable2) const {
-                auto score1 = this->vsids.assignment[variable1] == VariableAssignment::Unassigned
-                    ? this->vsids.scores[variable1 - 1]
+                auto score1 = this->evsids.assignment[variable1] == VariableAssignment::Unassigned
+                    ? this->evsids.scores[variable1 - 1]
                     : -1.0;
-                auto score2 = this->vsids.assignment[variable2] == VariableAssignment::Unassigned
-                    ? this->vsids.scores[variable2 - 1]
+                auto score2 = this->evsids.assignment[variable2] == VariableAssignment::Unassigned
+                    ? this->evsids.scores[variable2 - 1]
                     : -1.0;
 
                 return score1 < score2 || (score1 == score2 && variable1 >= variable2);
             }
 
-            VSIDSHeuristics &vsids;
+            EVSIDSHeuristics<T> &evsids;
         };
 
         const Formula &formula;
