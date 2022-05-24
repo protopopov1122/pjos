@@ -7,13 +7,13 @@ namespace sat_solver {
     Literal::Literal(Int literal)
         : literal{literal} {
         if (literal == Literal::Terminator) {
-            throw SatError{SatErrorCode::InvalidParameter, "Literal cannot be zero"};
+            throw SatError{"Literal cannot be zero"};
         }
     }
 
     Literal::Literal(UInt literal, VariableAssignment assn) {
         if (literal == Literal::Terminator) {
-            throw SatError{SatErrorCode::InvalidParameter, "Literal cannot be zero"};
+            throw SatError{"Literal cannot be zero"};
         }
         switch (assn) {
             case VariableAssignment::True:

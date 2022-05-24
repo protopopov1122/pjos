@@ -28,7 +28,7 @@ namespace sat_solver {
         if (index < this->clause_length) {
             return this->clause[index];
         } else {
-            throw SatError{SatErrorCode::OutOfBounds, "Requested literal index is out of bounds"};
+            throw SatError{"Requested literal index is out of bounds"};
         }
     }
 

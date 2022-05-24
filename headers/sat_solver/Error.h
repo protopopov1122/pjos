@@ -7,17 +7,9 @@
 
 namespace sat_solver {
 
-    enum class SatErrorCode {
-        Unknown = 0,
-        InvalidParameter,
-        InvalidRequest,
-        OutOfBounds
-    };
-
     class SatError : public std::exception {
      public:
         SatError(std::string);
-        SatError(SatErrorCode, std::string);
         SatError(const SatError &) = default;
         SatError(SatError &&) = default;
 
@@ -28,10 +20,8 @@ namespace sat_solver {
 
         const char *what() const noexcept final;
         const std::string &Message() const noexcept;
-        SatErrorCode ErrorCode() const noexcept;
 
      private:
-        SatErrorCode error_code;
         std::string msg;
     };
 }

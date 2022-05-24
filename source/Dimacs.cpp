@@ -3,18 +3,8 @@
 #include <cctype>
 #include <iostream>
 #include <string>
-#include <regex>
 
 namespace sat_solver {
-
-    static std::regex CommentRegex{R"(^\s*c.*$)"};
-    static std::regex ProblemRegex{R"(^\s*p\s+cnf\s+([0-9]+)\s+([0-9]+)\s*$)"};
-    static std::regex LiteralRegex{R"((-?[0-9]+))"};
-
-    enum class LoaderMode {
-        Comments,
-        Literals
-    };
 
     DimacsLoader::DimacsLoader(std::istream &is)
         : input{is} {}

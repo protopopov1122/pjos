@@ -6,7 +6,7 @@
 namespace sat_solver {
 
     enum class VariableAssignment {
-        Unassigned = 100,
+        Unassigned = -1,
         False = 0,
         True = 1
     };
