@@ -1,10 +1,18 @@
 #include "sat_solver/Solver.h"
 #include <algorithm>
 #include <cassert>
+#include <limits>
 
 // This file contains implementation of CDCL-based SAT solver with some heuristics.
 
 namespace sat_solver {
+
+    const VSIDSHeuristics<CdclSolver::VariableOccurences>::ScoringParameters CdclSolver::HeuristicsParameters = {
+        1e20,
+        1e-20,
+        1,
+        1.05
+    };
 
     std::size_t CdclSolver::VariableOccurences::operator()(Literal::UInt variable) const {
         const auto &index_entry = this->solver.VariableIndex(variable);
@@ -18,7 +26,7 @@ namespace sat_solver {
         : ModifiableSolverBase::ModifiableSolverBase(std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
-          vsids{this->formula, this->assignment, VariableOccurences{*this}} {}
+          vsids{this->formula, this->assignment, HeuristicsParameters, VariableOccurences{*this}} {}
 
     const std::string &CdclSolver::Signature() {
         static std::string sig{"SAT Solver (CDCL)"};
@@ -34,6 +42,8 @@ namespace sat_solver {
             if (this->interrupt_requested.load()) {
                 return SolverStatus::Unknown;
             }
+
+            this->vsids.DecayActivity();
 
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) { // BCP satisfied the formula. Check whether all assumptions are also satisfied.

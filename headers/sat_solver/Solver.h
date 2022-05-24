@@ -147,8 +147,10 @@ namespace sat_solver {
         }
 
         std::vector<AnalysisTrackState> analysis_track;
-        VSIDSHeuristics<VariableOccurences, 1, 1024, 1> vsids;
+        VSIDSHeuristics<VariableOccurences> vsids;
         std::vector<Literal> final_conflict;
+
+        static const VSIDSHeuristics<VariableOccurences>::ScoringParameters HeuristicsParameters;
     };
 }
 

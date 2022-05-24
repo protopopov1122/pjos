@@ -7,11 +7,18 @@
 
 namespace sat_solver {
 
-    template <typename T, std::int64_t ScoreIncrement, std::int64_t RescoreThreshold, std::int64_t RescoreFactor>
+    template <typename T>
     class VSIDSHeuristics {
      public:
-        VSIDSHeuristics(const Formula &formula, const Assignment &assignment, T variable_stats)
-            : formula{formula}, assignment{assignment}, variable_stats{variable_stats} {
+        struct ScoringParameters {
+            double rescore_threshold;
+            double rescore_factor;
+            double initial_increment;
+            double decay_rate;
+        };
+
+        VSIDSHeuristics(const Formula &formula, const Assignment &assignment, const ScoringParameters &scoring, T variable_stats)
+            : formula{formula}, assignment{assignment}, scoring{scoring}, variable_stats{variable_stats} {
             
             this->FormulaUpdated();
         }
@@ -35,6 +42,7 @@ namespace sat_solver {
                 this->ordered_variables.push_back(i);
             }
             std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
+            this->score_increment = this->scoring.initial_increment;
             this->update_heap = false;
         }
 
@@ -59,13 +67,18 @@ namespace sat_solver {
             this->update_heap = false;
         }
 
+        void DecayActivity() {
+            this->score_increment *= this->scoring.decay_rate;
+        }
+
         void VariableActive(Literal::UInt variable) {
             auto &score = this->scores[variable - 1];
-            score += ScoreIncrement;
-            if (score > RescoreThreshold) {
+            score += this->score_increment;
+            if (score > this->scoring.rescore_threshold) {
                 for (auto &score : this->scores) {
-                    score >>= RescoreFactor;
+                    score *= this->scoring.rescore_threshold;
                 }
+                this->score_increment = this->scoring.initial_increment;
             }
 
             this->update_heap = true;
@@ -92,10 +105,10 @@ namespace sat_solver {
             bool operator()(Literal::UInt variable1, Literal::UInt variable2) const {
                 auto score1 = this->vsids.assignment[variable1] == VariableAssignment::Unassigned
                     ? this->vsids.scores[variable1 - 1]
-                    : -1;
+                    : -1.0;
                 auto score2 = this->vsids.assignment[variable2] == VariableAssignment::Unassigned
                     ? this->vsids.scores[variable2 - 1]
-                    : -1;
+                    : -1.0;
 
                 return score1 < score2 || (score1 == score2 && variable1 >= variable2);
             }
@@ -105,8 +118,10 @@ namespace sat_solver {
 
         const Formula &formula;
         const Assignment &assignment;
+        ScoringParameters scoring;
         T variable_stats;
-        std::vector<std::int64_t> scores;
+        std::vector<double> scores;
+        double score_increment{1.0};
         std::vector<Literal::UInt> ordered_variables;
         bool update_heap{false};
     };
