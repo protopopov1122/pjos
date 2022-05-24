@@ -26,8 +26,8 @@ namespace sat_solver {
 
     class Literal {
      public:
-        using Int = std::int_fast32_t;
-        using UInt = std::uint_fast32_t;
+        using Int = std::int_fast64_t;
+        using UInt = std::uint_fast64_t;
 
         Literal() = default;
         Literal(Int);

@@ -21,6 +21,10 @@ namespace sat_solver {
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
           evsids{this->formula, this->assignment, {1e20, 1e-20, 1, 1.05}, VariableOccurences{*this}} {}
 
+    void CdclSolver::OnLearnedClause(std::function<void(const ClauseView &)> fn) {
+        this->learned_clause_fn = std::move(fn);
+    }
+
     const std::string &CdclSolver::Signature() {
         static std::string sig{"SAT Solver (CDCL)"};
         return sig;
@@ -61,6 +65,9 @@ namespace sat_solver {
                 // Analyze the conflict, obtain learned clause and non-chronological backjump level
                 auto [learned_clause, backjump_level] = this->AnalyzeConflict(this->formula[conflict_clause]);
                 this->AppendClause(std::move(learned_clause));
+                if (this->learned_clause_fn != nullptr) {
+                    this->learned_clause_fn(learned_clause);
+                }
                 
                 // Try to backjump. If the backjump fails or involves assumptions, the formula is UNSAT.
                 if (backjump_level < number_of_assumptions || !this->Backjump(backjump_level)) {

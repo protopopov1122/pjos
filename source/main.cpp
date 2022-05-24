@@ -29,6 +29,7 @@ int main(int argc, const char **argv) {
     }
 
     solver.InterruptOn([]() {return false;});
+    solver.OnLearnedClause([](const auto &) {});
 
     std::vector<Literal> final_conflict;
     auto status = solver.Solve(assumptions.begin(), assumptions.end(), std::back_inserter(final_conflict));

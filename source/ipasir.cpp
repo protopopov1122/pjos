@@ -167,9 +167,43 @@ IPASIR_API void ipasir_set_terminate (void *solver, void *data, int (*callback)(
     }
 }
 
-IPASIR_API void ipasir_set_learn (void *, void *, int, void (*)(void *, int32_t *)) {
-    std::cerr << "ipasir_set_learn: not implemented yet" << std::endl;
-    ABORT();
+IPASIR_API void ipasir_set_learn (void *solver, void *data, int maxlen, void (*callback)(void *, int32_t *)) {
+    try {
+        ipasir_solver *isolver = static_cast<ipasir_solver *>(solver);
+        if (callback != nullptr) {
+            isolver->solver.OnLearnedClause([data, maxlen, callback](const auto &clause) mutable {
+                if (static_cast<int>(clause.Length()) > maxlen) {
+                    return;
+                }
+
+                constexpr std::size_t MaxStackAllocatedClauseLength = 255;
+                if (clause.Length() > MaxStackAllocatedClauseLength) { 
+                    std::vector<int32_t> content{};
+                    for (auto literal : clause) {
+                        content.push_back(literal.Get());
+                    }
+                    content.push_back(0);
+                    callback(data, content.data());
+                } else {
+                    std::array<int32_t, MaxStackAllocatedClauseLength + 1> content;
+                    auto it = content.begin();
+                    for (auto literal : clause) {
+                        *(it++) = literal.Get();
+                    }
+                    *(it++) = 0;
+                    callback(data, content.data());
+                }
+            });
+        } else {
+            isolver->solver.OnLearnedClause(nullptr);
+        }
+    } catch (const std::exception &ex) {
+        std::cerr << "ipasir_set_learn: " << ex.what() << std::endl;
+        ABORT();
+    } catch (...) {
+        std::cerr << "ipasir_set_learn: caught an unknown exception" << std::endl;
+        ABORT();
+    }
 }
 
 #endif

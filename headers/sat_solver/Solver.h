@@ -54,6 +54,8 @@ namespace sat_solver {
         CdclSolver &operator=(const CdclSolver &) = default;
         CdclSolver &operator=(CdclSolver &&) = default;
 
+        void OnLearnedClause(std::function<void(const ClauseView &)>);
+
         using BaseSolver<CdclSolver>::Solve; // Import existing solve methods
 
         template <typename I, typename O>
@@ -149,6 +151,7 @@ namespace sat_solver {
         std::vector<AnalysisTrackState> analysis_track;
         EVSIDSHeuristics<VariableOccurences> evsids;
         std::vector<Literal> final_conflict;
+        std::function<void(const ClauseView &)> learned_clause_fn;
     };
 }
 
