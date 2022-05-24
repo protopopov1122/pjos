@@ -36,6 +36,10 @@ namespace sat_solver {
             this->interrupt_requested = true;
         }
 
+        void InterruptOn(std::function<bool()> req_fn) {
+            this->interrupt_request_fn = std::move(req_fn);
+        }
+
         SolverStatus Status() const {
             return this->current_status.load();
         }
@@ -289,6 +293,7 @@ namespace sat_solver {
         std::vector<std::tuple<Literal::UInt, VariableAssignment, bool>> pending_assignments{};
         std::atomic_bool interrupt_requested{false};
         std::atomic<SolverStatus> current_status{SolverStatus::Unknown};
+        std::function<bool()> interrupt_request_fn{nullptr};
 
         static constexpr std::size_t ClauseUndef = ~static_cast<std::size_t>(0);
 

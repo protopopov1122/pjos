@@ -148,9 +148,23 @@ IPASIR_API int ipasir_failed (void *solver, int32_t lit) {
     }
 }
 
-IPASIR_API void ipasir_set_terminate (void *, void *, int (*)(void *)) {
-    std::cerr << "ipasir_set_terminate: not implemented yet" << std::endl;
-    ABORT();
+IPASIR_API void ipasir_set_terminate (void *solver, void *data, int (*callback)(void *)) {
+    try {
+        ipasir_solver *isolver = static_cast<ipasir_solver *>(solver);
+        if (callback != nullptr) {
+            isolver->solver.InterruptOn([data, callback] {
+                return callback(data) != 0;
+            });
+        } else {
+            isolver->solver.InterruptOn(nullptr);
+        }
+    } catch (const std::exception &ex) {
+        std::cerr << "ipasir_set_terminate: " << ex.what() << std::endl;
+        ABORT();
+    } catch (...) {
+        std::cerr << "ipasir_set_terminate: caught an unknown exception" << std::endl;
+        ABORT();
+    }
 }
 
 IPASIR_API void ipasir_set_learn (void *, void *, int, void (*)(void *, int32_t *)) {

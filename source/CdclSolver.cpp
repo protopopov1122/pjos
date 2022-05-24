@@ -32,7 +32,7 @@ namespace sat_solver {
         auto pending_assignments_iter = this->pending_assignments.begin();
         std::size_t number_of_assumptions{0};
         for (;;) {
-            if (this->interrupt_requested.load()) {
+            if (this->interrupt_requested.load() || (this->interrupt_request_fn != nullptr && this->interrupt_request_fn())) {
                 return SolverStatus::Unknown;
             }
 

@@ -18,7 +18,7 @@ namespace sat_solver {
     SolverStatus DpllSolver::SolveImpl() {
         auto pending_assignments_iter = this->pending_assignments.begin();
         for (;;) {
-            if (this->interrupt_requested.load()) {
+            if (this->interrupt_requested.load() || (this->interrupt_request_fn != nullptr && this->interrupt_request_fn())) {
                 return SolverStatus::Unknown;
             }
 
