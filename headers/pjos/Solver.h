@@ -4,6 +4,7 @@
 #include "pjos/BaseSolver.h"
 #include "pjos/Heuristics.h"
 #include <algorithm>
+#include <set>
 #include <vector>
 
 // This file contains specific implementations of SAT solvers for DPLL and CDCL algorithms
@@ -121,7 +122,7 @@ namespace pjos {
                     const auto &clause = this->formula[trail_entry.reason];
                     pending += this->MarkClauseForFinalConflictAnalysis(clause.begin(), clause.end(), false);
                 } else if (trail_entry.reason == DecisionTrail::ReasonAssumption) { // The assignment is a result of assumption, put the assumption into the final conflict
-                    this->final_conflict.push_back(Literal{trail_entry.variable, trail_entry.assignment});
+                    this->final_conflict.insert(Literal{trail_entry.variable, trail_entry.assignment});
                 }
             }
         }
@@ -142,7 +143,7 @@ namespace pjos {
                     this->AnalysisTrackOf(variable) = AnalysisTrackState::Pending;
                     pending++;
                 } else if (trail_entry->reason == DecisionTrail::ReasonAssumption || assumption_clause) { // If the assignment is an assumption itself, put in into the final conflict
-                    this->final_conflict.push_back(Literal{trail_entry->variable, trail_entry->assignment});
+                    this->final_conflict.insert(Literal{trail_entry->variable, trail_entry->assignment});
                 }
             }
             return pending;
@@ -150,7 +151,7 @@ namespace pjos {
 
         std::vector<AnalysisTrackState> analysis_track;
         EVSIDSHeuristics<VariableOccurences> evsids;
-        std::vector<Literal> final_conflict;
+        std::set<Literal> final_conflict;
         std::function<void(const ClauseView &)> learned_clause_fn;
     };
 }
