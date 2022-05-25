@@ -60,6 +60,11 @@ namespace sat_solver {
             }
             return os;
         }
+
+        std::ostream &operator<<(std::ostream &os, const StringFormatter &str) {
+            os << "c " << str.str;
+            return os;
+        }
     }
 
     internal::LiteralFormatter Format(Literal literal) {
@@ -80,5 +85,9 @@ namespace sat_solver {
 
     internal::SolverStatusFormatter Format(SolverStatus status) {
         return {status};
+    }
+
+    internal::StringFormatter Format(const std::string &str) {
+        return {str};
     }
 }

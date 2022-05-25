@@ -39,11 +39,16 @@ namespace sat_solver {
             const T &solver;
         };
 
+        struct StringFormatter {
+            const std::string &str;
+        };
+
         std::ostream &operator<<(std::ostream &, const LiteralFormatter &);
         std::ostream &operator<<(std::ostream &, const ClauseViewFormatter &);
         std::ostream &operator<<(std::ostream &, const FormulaFormatter &);
         std::ostream &operator<<(std::ostream &, const AssignmentFormatter &);
         std::ostream &operator<<(std::ostream &, const SolverStatusFormatter &);
+        std::ostream &operator<<(std::ostream &, const StringFormatter &);
 
         template <typename T>
         std::ostream &operator<<(std::ostream &os, const SolverFormatter<T> &fmt) {
@@ -66,6 +71,7 @@ namespace sat_solver {
     internal::FormulaFormatter Format(const Formula &);
     internal::AssignmentFormatter Format(const Assignment &);
     internal::SolverStatusFormatter Format(SolverStatus);
+    internal::StringFormatter Format(const std::string &);
 
     template <typename T>
     internal::SolverFormatter<T> Format(const T &solver) {
