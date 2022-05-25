@@ -78,6 +78,7 @@ static bool parse_options(int argc, char * const * argv, Options &options) {
                 std::cout << "\t-v,--version\tPrint version information" << std::endl;
                 std::cout << "\t-h,--help\tPrint this help" << std::endl << std::endl;
                 std::cout << "Author: Jevgenijs Protopopovs <jprotopopov1122@gmail.com>" << std::endl;
+                std::cout << "URL: <https://github.com/protopopov1122/pjos>" << std::endl;
                 return true;
 
             default:
