@@ -11,7 +11,7 @@ namespace sat_solver {
         : BaseSolver::BaseSolver{formula} {}
 
     const std::string &DpllSolver::Signature() {
-        static std::string sig{"SAT Solver (DPLL)"};
+        static std::string sig{SAT_SOLVER_IDENTIFIER " (DPLL) " SAT_SOLVER_VERSION};
         return sig;
     }
 

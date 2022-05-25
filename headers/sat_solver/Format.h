@@ -36,7 +36,7 @@ namespace sat_solver {
 
         template <typename T>
         struct SolverFormatter {
-            const T &solver;
+            const BaseSolver<T> &solver;
             bool include_model;
         };
 
@@ -75,8 +75,7 @@ namespace sat_solver {
     internal::StringFormatter Format(const std::string &);
 
     template <typename T>
-    internal::SolverFormatter<T> Format(const T &solver, bool include_model = true) {
-        static_assert(std::is_base_of_v<BaseSolver<T>, T>);
+    internal::SolverFormatter<T> Format(const BaseSolver<T> &solver, bool include_model = true) {
         return {solver, include_model};
     }
 }
