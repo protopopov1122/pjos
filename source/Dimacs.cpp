@@ -10,12 +10,12 @@ namespace sat_solver {
         : input{is} {}
 
     void DimacsLoader::LoadInto(Formula &formula) {
-        FormulaBuilder builder{formula};
-        this->ScanInput(builder);
+        this->ScanInput(formula);
     }
 
-    void DimacsLoader::ScanInput(FormulaBuilder &builder) {
-        this->ScanPreamble();
+    void DimacsLoader::ScanInput(Formula &formula) {
+        FormulaBuilder builder{formula};
+        auto [num_of_clauses, num_of_variables] = this->ScanPreamble();
         while (!this->input.eof()) {
             Literal::Int lit;
             this->input >> lit;
@@ -28,6 +28,13 @@ namespace sat_solver {
                 builder.AppendLiteral(lit);
             }
         }
+
+        if (num_of_clauses != formula.NumOfClauses()) {
+            std::cerr << "Warning: Number of clauses does not match DIMACS preamble " << num_of_clauses << ' ' << formula.NumOfClauses() << std::endl;
+        }
+        if (num_of_variables != formula.NumOfVariables()) {
+            std::cerr << "Warning: Number of variables does not match DIMACS preamble" << std::endl;
+        }
     }
 
     std::pair<std::size_t, Literal::UInt> DimacsLoader::ScanPreamble() {
@@ -37,8 +44,8 @@ namespace sat_solver {
             std::getline(this->input, line);
             if (line.compare(0, prefix.size(), prefix) == 0) {
                 char *strptr = nullptr;
-                std::size_t num_of_clauses = std::strtoull(line.c_str() + prefix.size(), &strptr, 10);
-                Literal::UInt num_of_variables = std::strtoull(strptr, nullptr, 10);
+                Literal::UInt num_of_variables = std::strtoull(line.c_str() + prefix.size(), &strptr, 10);
+                std::size_t num_of_clauses = std::strtoull(strptr, nullptr, 10);
                 return std::make_pair(num_of_clauses, num_of_variables);
             } else if (!line.empty() && line.front() != 'c') {
                 throw SatError{"Invalid DIMACS file format"};

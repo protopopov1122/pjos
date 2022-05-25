@@ -20,7 +20,7 @@ namespace sat_solver {
         void LoadInto(Formula &);
 
      private:
-        void ScanInput(FormulaBuilder &);
+        void ScanInput(Formula &);
         std::pair<std::size_t, Literal::UInt> ScanPreamble();
 
         std::istream &input;
