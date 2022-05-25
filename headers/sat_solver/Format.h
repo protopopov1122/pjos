@@ -37,6 +37,7 @@ namespace sat_solver {
         template <typename T>
         struct SolverFormatter {
             const T &solver;
+            bool include_model;
         };
 
         struct StringFormatter {
@@ -54,7 +55,7 @@ namespace sat_solver {
         std::ostream &operator<<(std::ostream &os, const SolverFormatter<T> &fmt) {
             os << "s " << Format(fmt.solver.Status());
 
-            if (fmt.solver.Status() == SolverStatus::Satisfied) {
+            if (fmt.solver.Status() == SolverStatus::Satisfied && fmt.include_model) {
                 os << std::endl << "v ";
                 const auto &assn = fmt.solver.GetAssignment();
                 for (Literal::UInt variable = 1; variable <= assn.NumOfVariables(); variable++) {
@@ -74,9 +75,9 @@ namespace sat_solver {
     internal::StringFormatter Format(const std::string &);
 
     template <typename T>
-    internal::SolverFormatter<T> Format(const T &solver) {
+    internal::SolverFormatter<T> Format(const T &solver, bool include_model = true) {
         static_assert(std::is_base_of_v<BaseSolver<T>, T>);
-        return {solver};
+        return {solver, include_model};
     }
 }
 

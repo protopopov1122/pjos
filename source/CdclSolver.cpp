@@ -26,7 +26,7 @@ namespace sat_solver {
     }
 
     const std::string &CdclSolver::Signature() {
-        static std::string sig{"SAT Solver (CDCL)"};
+        static std::string sig{"SAT Solver (CDCL) v0.0.1"};
         return sig;
     }
 
