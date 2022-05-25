@@ -1,7 +1,7 @@
-#include "sat_solver/Formula.h"
+#include "pjos/Formula.h"
 #include <algorithm>
 
-namespace sat_solver {
+namespace pjos {
     
     Formula::IteratorType Formula::begin() const {
         return IteratorType{this->clauses.begin()};

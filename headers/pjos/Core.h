@@ -1,12 +1,12 @@
-#ifndef SAT_SOLVER_CORE_H_
-#define SAT_SOLVER_CORE_H_
+#ifndef PJOS_CORE_H_
+#define PJOS_CORE_H_
 
-#include "sat_solver/Base.h"
+#include "pjos/Base.h"
 
-#define SAT_SOLVER_IDENTIFIER "SAT Solver"
-#define SAT_SOLVER_VERSION "v0.0.1"
+#define PJOS_IDENTIFIER "PJOS SAT Solver"
+#define PJOS_VERSION "v0.0.1"
 
-namespace sat_solver {
+namespace pjos {
 
     enum class VariableAssignment {
         Unassigned = -1,

@@ -1,6 +1,6 @@
-#include "sat_solver/Error.h"
+#include "pjos/Error.h"
 
-namespace sat_solver {
+namespace pjos {
     
     SatError::SatError(std::string msg)
         : msg{std::move(msg)} {}

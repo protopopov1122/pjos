@@ -1,31 +1,31 @@
-#ifdef SAT_SOLVER_IPASIR_INTERFACE_ENABLE
+#ifdef PJOS_IPASIR_INTERFACE_ENABLE
 
-#ifdef SAT_SOLVER_IPASIR_INTERFACE_HEADER
-#include SAT_SOLVER_IPASIR_INTERFACE_HEADER
+#ifdef PJOS_IPASIR_INTERFACE_HEADER
+#include PJOS_IPASIR_INTERFACE_HEADER
 #else
 #include "ipasir.h"
 #endif
 
-#include "sat_solver/Solver.h"
+#include "pjos/Solver.h"
 #include <exception>
 #include <iostream>
 #include <vector>
 
-#ifdef SAT_SOLVER_IPASIR_INTERFACE_ABORT_ON_ERROR
+#ifdef PJOS_IPASIR_INTERFACE_ABORT_ON_ERROR
 #define ABORT() std::abort()
 #else
 #define ABORT() ((void)0)
 #endif
 
 struct ipasir_solver {
-    sat_solver::CdclSolver solver{};
-    sat_solver::ClauseBuilder clause_builder{};
-    std::vector<sat_solver::Literal> assumptions{};
-    std::vector<sat_solver::Literal> final_conflict{};
+    pjos::CdclSolver solver{};
+    pjos::ClauseBuilder clause_builder{};
+    std::vector<pjos::Literal> assumptions{};
+    std::vector<pjos::Literal> final_conflict{};
 };
 
 IPASIR_API const char * ipasir_signature () {
-    return sat_solver::CdclSolver::Signature().c_str();
+    return pjos::CdclSolver::Signature().c_str();
 }
 
 IPASIR_API void * ipasir_init () {
@@ -90,14 +90,14 @@ IPASIR_API int ipasir_solve (void * solver) {
         auto res = isolver->solver.Solve(isolver->assumptions.begin(), isolver->assumptions.end(), std::back_inserter(isolver->final_conflict));
         isolver->assumptions.clear();
         switch (res) {
-            case sat_solver::SolverStatus::Unknown:
-            case sat_solver::SolverStatus::Solving:
+            case pjos::SolverStatus::Unknown:
+            case pjos::SolverStatus::Solving:
                 return 0;
 
-            case sat_solver::SolverStatus::Satisfied:
+            case pjos::SolverStatus::Satisfied:
                 return 10;
 
-            case sat_solver::SolverStatus::Unsatisfied:
+            case pjos::SolverStatus::Unsatisfied:
                 return 20;
         }
     } catch (const std::exception &ex) {
@@ -115,13 +115,13 @@ IPASIR_API int32_t ipasir_val (void * solver, int32_t lit) {
         ipasir_solver *isolver = static_cast<ipasir_solver *>(solver);
         auto assn = isolver->solver.GetAssignment().Of(lit);
         switch (assn) {
-            case sat_solver::VariableAssignment::Unassigned:
+            case pjos::VariableAssignment::Unassigned:
                 return 0;
 
-            case sat_solver::VariableAssignment::True:
+            case pjos::VariableAssignment::True:
                 return lit;
 
-            case sat_solver::VariableAssignment::False:
+            case pjos::VariableAssignment::False:
                 return -lit;
         }
     } catch (const std::exception &ex) {

@@ -1,17 +1,17 @@
-#include "sat_solver/Solver.h"
-#include "sat_solver/Format.h"
+#include "pjos/Solver.h"
+#include "pjos/Format.h"
 
 // This file contains simple implementation of DPLL solver.
 // The solver is not practical by itself, however may be used as a baseline
 // for debugging issues.
 
-namespace sat_solver {
+namespace pjos {
 
     DpllSolver::DpllSolver(const Formula &formula)
         : BaseSolver::BaseSolver{formula} {}
 
     const std::string &DpllSolver::Signature() {
-        static std::string sig{SAT_SOLVER_IDENTIFIER " (DPLL) " SAT_SOLVER_VERSION};
+        static std::string sig{PJOS_IDENTIFIER " (DPLL) " PJOS_VERSION};
         return sig;
     }
 

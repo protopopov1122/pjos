@@ -1,4 +1,4 @@
-## PJOS - Protopopov Jevgenij's Own SAT solver
+## PJOS - Protopopov Jevgenij's Own SAT Solver
 
 This repository contains source code of SAT solver developed as a course project for "SAT Solving" course at JKU Linz.
 The solver implements CDCL algorithm with EVSIDS (Exponential Variable State Independent Decaying Sum)

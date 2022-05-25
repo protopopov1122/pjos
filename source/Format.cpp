@@ -1,7 +1,7 @@
-#include "sat_solver/Format.h"
+#include "pjos/Format.h"
 #include <iostream>
 
-namespace sat_solver {
+namespace pjos {
 
     namespace internal {
         std::ostream &operator<<(std::ostream &os, const LiteralFormatter &literal) {

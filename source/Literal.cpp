@@ -1,8 +1,8 @@
-#include "sat_solver/Literal.h"
-#include "sat_solver/Error.h"
+#include "pjos/Literal.h"
+#include "pjos/Error.h"
 #include <cstdlib>
 
-namespace sat_solver {
+namespace pjos {
 
     Literal::Literal(Int literal)
         : literal{literal} {

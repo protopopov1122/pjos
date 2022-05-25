@@ -1,16 +1,16 @@
-#ifndef SAT_SOLVER_FORMAT_H_
-#define SAT_SOLVER_FORMAT_H_
+#ifndef PJOS_FORMAT_H_
+#define PJOS_FORMAT_H_
 
-#include "sat_solver/Core.h"
-#include "sat_solver/Literal.h"
-#include "sat_solver/Clause.h"
-#include "sat_solver/Formula.h"
-#include "sat_solver/Assignment.h"
-#include "sat_solver/BaseSolver.h"
+#include "pjos/Core.h"
+#include "pjos/Literal.h"
+#include "pjos/Clause.h"
+#include "pjos/Formula.h"
+#include "pjos/Assignment.h"
+#include "pjos/BaseSolver.h"
 #include <iostream>
 #include <type_traits>
 
-namespace sat_solver {
+namespace pjos {
 
     namespace internal {
         

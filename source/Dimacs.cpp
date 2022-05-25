@@ -1,10 +1,10 @@
-#include "sat_solver/Dimacs.h"
-#include "sat_solver/Error.h"
+#include "pjos/Dimacs.h"
+#include "pjos/Error.h"
 #include <cctype>
 #include <iostream>
 #include <string>
 
-namespace sat_solver {
+namespace pjos {
 
     DimacsLoader::DimacsLoader(std::istream &is)
         : input{is} {}

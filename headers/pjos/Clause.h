@@ -1,11 +1,11 @@
-#ifndef SAT_SOLVER_CLAUSE_H_
-#define SAT_SOLVER_CLAUSE_H_
+#ifndef PJOS_CLAUSE_H_
+#define PJOS_CLAUSE_H_
 
-#include "sat_solver/Literal.h"
+#include "pjos/Literal.h"
 #include <memory>
 #include <set>
 
-namespace sat_solver {
+namespace pjos {
 
     class ClauseView {
      public:

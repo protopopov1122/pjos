@@ -1,11 +1,11 @@
-#ifndef SAT_SOLVER_HEURISTICS_H_
-#define SAT_SOLVER_HEURISTICS_H_
+#ifndef PJOS_HEURISTICS_H_
+#define PJOS_HEURISTICS_H_
 
-#include "sat_solver/Formula.h"
-#include "sat_solver/Assignment.h"
+#include "pjos/Formula.h"
+#include "pjos/Assignment.h"
 #include <algorithm>
 
-namespace sat_solver {
+namespace pjos {
 
     template <typename T>
     class EVSIDSHeuristics {

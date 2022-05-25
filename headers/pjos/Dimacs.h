@@ -1,10 +1,10 @@
-#ifndef SAT_SOLVER_DIMACS_H_
-#define SAT_SOLVER_DIMACS_H_
+#ifndef PJOS_DIMACS_H_
+#define PJOS_DIMACS_H_
 
-#include "sat_solver/Formula.h"
+#include "pjos/Formula.h"
 #include <iosfwd>
 
-namespace sat_solver {
+namespace pjos {
 
     class DimacsLoader {
      public:

@@ -1,7 +1,7 @@
-#include "sat_solver/Assignment.h"
+#include "pjos/Assignment.h"
 #include <algorithm>
 
-namespace sat_solver {
+namespace pjos {
 
     Assignment::Assignment(std::size_t num_of_variables)
         : assignment{num_of_variables, VariableAssignment::Unassigned} {}

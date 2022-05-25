@@ -1,8 +1,8 @@
-#include "sat_solver/Clause.h"
-#include "sat_solver/Error.h"
+#include "pjos/Clause.h"
+#include "pjos/Error.h"
 #include <algorithm>
 
-namespace sat_solver {
+namespace pjos {
 
     static bool var_comparator(const Literal &l1, const Literal &l2) {
         return l1.Variable() < l2.Variable();

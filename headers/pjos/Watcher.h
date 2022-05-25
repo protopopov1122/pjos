@@ -1,10 +1,10 @@
-#ifndef SAT_SOLVER_WATCHER_H_
-#define SAT_SOLVER_WATCHER_H_
+#ifndef PJOS_WATCHER_H_
+#define PJOS_WATCHER_H_
 
-#include "sat_solver/Clause.h"
-#include "sat_solver/Assignment.h"
+#include "pjos/Clause.h"
+#include "pjos/Assignment.h"
 
-namespace sat_solver {
+namespace pjos {
 
     enum class ClauseStatus {
         Satisfied,

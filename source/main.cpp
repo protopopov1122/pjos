@@ -3,13 +3,13 @@
 #include <fstream>
 #include <chrono>
 #include <getopt.h>
-#include "sat_solver/Formula.h"
-#include "sat_solver/Format.h"
-#include "sat_solver/Dimacs.h"
-#include "sat_solver/Solver.h"
-#include "sat_solver/Error.h"
+#include "pjos/Formula.h"
+#include "pjos/Format.h"
+#include "pjos/Dimacs.h"
+#include "pjos/Solver.h"
+#include "pjos/Error.h"
 
-using namespace sat_solver;
+using namespace pjos;
 using namespace std::string_literals;
 
 static std::chrono::high_resolution_clock hrclock;
@@ -63,11 +63,11 @@ static bool parse_options(int argc, char * const * argv, Options &options) {
                 break;
 
             case 'v':
-                std::cout << SAT_SOLVER_VERSION << std::endl;
+                std::cout << PJOS_VERSION << std::endl;
                 return true;
             
             case 'h':
-                std::cout << SAT_SOLVER_IDENTIFIER << ' ' << SAT_SOLVER_VERSION << std::endl;
+                std::cout << PJOS_IDENTIFIER << ' ' << PJOS_VERSION << std::endl;
                 std::cout << "Usage: " << argv[0] << " [options]" << " [DIMACS file]" << std::endl;
                 std::cout << "If no DIMACS file is specified, stdin will be used. Options:" << std::endl;
                 std::cout << "\t-a,--assume L\tAdd literal L to assumptions" << std::endl;

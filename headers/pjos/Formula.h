@@ -1,11 +1,11 @@
-#ifndef SAT_SOLVER_FORMULA_H_
-#define SAT_SOLVER_FORMULA_H_
+#ifndef PJOS_FORMULA_H_
+#define PJOS_FORMULA_H_
 
-#include "sat_solver/Clause.h"
+#include "pjos/Clause.h"
 #include <iterator>
 #include <vector>
 
-namespace sat_solver {
+namespace pjos {
 
     namespace internal {
         template <typename I>
@@ -157,11 +157,11 @@ namespace sat_solver {
 }
 
 template <typename I>
-struct std::iterator_traits<sat_solver::internal::FormulaIterator<I>> {
+struct std::iterator_traits<pjos::internal::FormulaIterator<I>> {
     using difference_type = std::ptrdiff_t;
-    using value_type = const sat_solver::ClauseView;
-    using pointer = const sat_solver::ClauseView *;
-    using reference = const sat_solver::ClauseView &;
+    using value_type = const pjos::ClauseView;
+    using pointer = const pjos::ClauseView *;
+    using reference = const pjos::ClauseView &;
     using iterator_category = std::bidirectional_iterator_tag;
 };
 

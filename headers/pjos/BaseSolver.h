@@ -1,11 +1,11 @@
-#ifndef SAT_SOLVER_BASE_SOLVER_H_
-#define SAT_SOLVER_BASE_SOLVER_H_
+#ifndef PJOS_BASE_SOLVER_H_
+#define PJOS_BASE_SOLVER_H_
 
-#include "sat_solver/Core.h"
-#include "sat_solver/Formula.h"
-#include "sat_solver/Assignment.h"
-#include "sat_solver/Watcher.h"
-#include "sat_solver/DecisionTrail.h"
+#include "pjos/Core.h"
+#include "pjos/Formula.h"
+#include "pjos/Assignment.h"
+#include "pjos/Watcher.h"
+#include "pjos/DecisionTrail.h"
 #include <algorithm>
 #include <atomic>
 #include <cassert>
@@ -16,7 +16,7 @@
 // that can be re-used by different SAT solving algorithms (e.g. DPLL, CDCL). Specific
 // algorithms are expected to extend base class to benefit from it's functionality.
 
-namespace sat_solver {
+namespace pjos {
 
     template <typename C /* Needed for static polymorphism implementation via CRTP idiom */>
     class BaseSolver {
@@ -266,7 +266,7 @@ namespace sat_solver {
         }
 
         void PostSolve() { // Activities after solver starts
-#ifdef SAT_SOLVER_DEBUG_VALIDATIONS_ENABLE
+#ifdef PJOS_DEBUG_VALIDATIONS_ENABLE
             if (this->current_status == SolverStatus::Satisfied && !this->pending_assignments.empty()) {
                 // For debugging purposes, check whether the model fulfills all assumptions
                 for (auto [variable, variable_assignment, is_assumption] : this->pending_assignments) {

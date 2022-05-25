@@ -1,11 +1,11 @@
-#ifndef SAT_SOLVER_ASSIGNMENT_H_
-#define SAT_SOLVER_ASSIGNMENT_H_
+#ifndef PJOS_ASSIGNMENT_H_
+#define PJOS_ASSIGNMENT_H_
 
-#include "sat_solver/Literal.h"
+#include "pjos/Literal.h"
 #include <utility>
 #include <vector>
 
-namespace sat_solver {
+namespace pjos {
 
     namespace internal {
         
@@ -142,9 +142,9 @@ namespace sat_solver {
 }
 
 template <typename I>
-struct std::iterator_traits<sat_solver::internal::AssignmentIterator<I>> {
+struct std::iterator_traits<pjos::internal::AssignmentIterator<I>> {
     using difference_type = std::ptrdiff_t;
-    using value_type = std::pair<sat_solver::Literal::UInt, sat_solver::VariableAssignment>;
+    using value_type = std::pair<pjos::Literal::UInt, pjos::VariableAssignment>;
     using iterator_category = std::bidirectional_iterator_tag;
 };
 

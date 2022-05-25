@@ -1,11 +1,11 @@
-#include "sat_solver/Solver.h"
+#include "pjos/Solver.h"
 #include <algorithm>
 #include <cassert>
 #include <limits>
 
 // This file contains implementation of CDCL-based SAT solver with some heuristics.
 
-namespace sat_solver {
+namespace pjos {
 
     std::size_t CdclSolver::VariableOccurences::operator()(Literal::UInt variable) const {
         const auto &index_entry = this->solver.VariableIndex(variable);
@@ -26,7 +26,7 @@ namespace sat_solver {
     }
 
     const std::string &CdclSolver::Signature() {
-        static std::string sig{SAT_SOLVER_IDENTIFIER " (CDCL) " SAT_SOLVER_VERSION};
+        static std::string sig{PJOS_IDENTIFIER " (CDCL) " PJOS_VERSION};
         return sig;
     }
 

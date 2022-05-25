@@ -1,14 +1,14 @@
-#ifndef SAT_SOLVER_SOLVER_H_
-#define SAT_SOLVER_SOLVER_H_
+#ifndef PJOS_SOLVER_H_
+#define PJOS_SOLVER_H_
 
-#include "sat_solver/BaseSolver.h"
-#include "sat_solver/Heuristics.h"
+#include "pjos/BaseSolver.h"
+#include "pjos/Heuristics.h"
 #include <algorithm>
 #include <vector>
 
 // This file contains specific implementations of SAT solvers for DPLL and CDCL algorithms
 
-namespace sat_solver {
+namespace pjos {
 
     class DpllSolver : public BaseSolver<DpllSolver> {
      public:

@@ -1,9 +1,9 @@
-#include "sat_solver/Watcher.h"
-#include "sat_solver/Error.h"
+#include "pjos/Watcher.h"
+#include "pjos/Error.h"
 #include <algorithm>
 #include <cassert>
 
-namespace sat_solver {
+namespace pjos {
 
     Watcher::Watcher(const ClauseView &clause)
         : clause{clause}, status{ClauseStatus::Undecided}, watched_literals{-1, -1} {
@@ -55,7 +55,7 @@ namespace sat_solver {
 
         this->UpdateStatus(assn);
 
-#ifdef SAT_SOLVER_DEBUG_VALIDATIONS_ENABLE
+#ifdef PJOS_DEBUG_VALIDATIONS_ENABLE
         Watcher clone{*this};
         clone.Rescan(assn);
         assert(this->status == clone.status);

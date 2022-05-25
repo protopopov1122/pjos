@@ -1,13 +1,13 @@
-#ifndef SAT_SOLVER_LITERAL_H_
-#define SAT_SOLVER_LITERAL_H_
+#ifndef PJOS_LITERAL_H_
+#define PJOS_LITERAL_H_
 
-#include "sat_solver/Core.h"
+#include "pjos/Core.h"
 #include <cinttypes>
 #include <cstdlib>
 #include <functional>
 #include <utility>
 
-namespace sat_solver {
+namespace pjos {
 
     inline constexpr VariableAssignment FlipVariableAssignment(VariableAssignment assn) {
         switch (assn) {            
@@ -85,15 +85,15 @@ namespace sat_solver {
 }
 
 template <>
-struct std::hash<sat_solver::Literal> {
-    std::size_t operator()(const sat_solver::Literal &l) const noexcept {
+struct std::hash<pjos::Literal> {
+    std::size_t operator()(const pjos::Literal &l) const noexcept {
         return static_cast<std::size_t>(l.Get());
     }
 };
 
 template <>
-struct std::less<sat_solver::Literal> {
-    bool operator()(const sat_solver::Literal &l1, const sat_solver::Literal &l2) const noexcept {
+struct std::less<pjos::Literal> {
+    bool operator()(const pjos::Literal &l1, const pjos::Literal &l2) const noexcept {
         return l1.Variable() < l2.Variable() || (l1.Variable() == l2.Variable() && l1.Get() < l2.Get());
     }
 };

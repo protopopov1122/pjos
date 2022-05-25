@@ -1,7 +1,7 @@
-#include "sat_solver/DecisionTrail.h"
+#include "pjos/DecisionTrail.h"
 #include <algorithm>
 
-namespace sat_solver {
+namespace pjos {
 
     static constexpr std::size_t EmptyIndex = static_cast<std::size_t>(-1);
 

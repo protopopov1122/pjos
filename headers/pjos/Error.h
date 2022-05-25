@@ -1,11 +1,11 @@
-#ifndef SAT_SOLVER_ERROR_H_
-#define SAT_SOLVER_ERROR_H_
+#ifndef PJOS_ERROR_H_
+#define PJOS_ERROR_H_
 
-#include "sat_solver/Base.h"
+#include "pjos/Base.h"
 #include <exception>
 #include <string>
 
-namespace sat_solver {
+namespace pjos {
 
     class SatError : public std::exception {
      public:

@@ -1,12 +1,12 @@
-#ifndef SAT_SOLVER_DECISION_TRAIL_H_
-#define SAT_SOLVER_DECISION_TRAIL_H_
+#ifndef PJOS_DECISION_TRAIL_H_
+#define PJOS_DECISION_TRAIL_H_
 
-#include "sat_solver/Assignment.h"
+#include "pjos/Assignment.h"
 #include <functional>
 #include <optional>
 #include <vector>
 
-namespace sat_solver {
+namespace pjos {
 
     class DecisionTrail {
      public:
