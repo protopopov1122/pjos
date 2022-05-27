@@ -1,3 +1,8 @@
+/*
+    SPDX-License-Identifier: MIT
+    SPDX-FileCopyrightText: 2022 Protopopovs Jevgenijs
+*/
+
 #ifndef PJOS_DECISION_TRAIL_H_
 #define PJOS_DECISION_TRAIL_H_
 

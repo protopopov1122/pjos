@@ -1,3 +1,8 @@
+/*
+    SPDX-License-Identifier: MIT
+    SPDX-FileCopyrightText: 2022 Protopopovs Jevgenijs
+*/
+
 #include "pjos/Literal.h"
 #include "pjos/Error.h"
 #include <cstdlib>

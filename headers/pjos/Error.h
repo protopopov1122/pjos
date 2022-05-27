@@ -1,3 +1,8 @@
+/*
+    SPDX-License-Identifier: MIT
+    SPDX-FileCopyrightText: 2022 Protopopovs Jevgenijs
+*/
+
 #ifndef PJOS_ERROR_H_
 #define PJOS_ERROR_H_
 

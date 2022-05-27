@@ -1,3 +1,8 @@
+/*
+    SPDX-License-Identifier: MIT
+    SPDX-FileCopyrightText: 2022 Protopopovs Jevgenijs
+*/
+
 #ifdef PJOS_IPASIR_INTERFACE_ENABLE
 
 #ifdef PJOS_IPASIR_INTERFACE_HEADER
