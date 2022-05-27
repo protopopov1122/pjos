@@ -19,7 +19,8 @@ namespace pjos {
         : ModifiableSolverBase::ModifiableSolverBase(std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
-          evsids{this->formula, this->assignment, {1e20, 1e-20, 1, 1.05}, VariableOccurences{*this}} {}
+          evsids{this->formula, this->assignment, {1e20, 1e-20, 1, 1.05}, VariableOccurences{*this}},
+          saved_phases{this->formula.NumOfVariables()} {}
 
     void CdclSolver::OnLearnedClause(std::function<void(const ClauseView &)> fn) {
         this->learned_clause_fn = std::move(fn);
@@ -84,9 +85,14 @@ namespace pjos {
 
                 // Simple heuristic -- assign variable to satisfy higher amount of clauses (actual status of clause is ignored and it's assumed
                 // that it's not already satisfied)
-                auto variable_assignment = variable_index_entry.positive_clauses.size() >= variable_index_entry.negative_clauses.size()
-                    ? VariableAssignment::True
-                    : VariableAssignment::False;
+                VariableAssignment variable_assignment;
+                if (this->saved_phases[variable] != VariableAssignment::Unassigned) {
+                    variable_assignment = this->saved_phases[variable];
+                } else {
+                    variable_assignment = variable_index_entry.positive_clauses.size() >= variable_index_entry.negative_clauses.size()
+                        ? VariableAssignment::True
+                        : VariableAssignment::False;
+                }
                 this->trail.Decision(variable, variable_assignment);
                 this->Assign(variable, variable_assignment);
             } else { // There is pending assignment, peform it
@@ -179,6 +185,12 @@ namespace pjos {
 
             assert(trail_entry->reason != DecisionTrail::ReasonAssumption);
 
+            if (trail_entry->reason == DecisionTrail::ReasonDecision && trail_entry->level > level) {
+                // Decisions above current backjump level are not causes of the conflict, thus
+                // might be saved and reused later
+                this->saved_phases[trail_entry->variable] = trail_entry->assignment;
+            }
+
             this->Assign(trail_entry->variable, VariableAssignment::Unassigned);
             this->trail.Pop();
         }
@@ -192,6 +204,7 @@ namespace pjos {
             this->analysis_track.insert(this->analysis_track.end(), this->formula.NumOfVariables() - this->analysis_track.size(), AnalysisTrackState::Untracked);
         }
         this->evsids.FormulaUpdated();
+        this->saved_phases.SetNumOfVariables(this->formula.NumOfVariables());
     }
 
     void CdclSolver::DetachClause(std::size_t clause_index, const ClauseView &clause) { // Whenever the clause is detached, update analysis track and heuristics
@@ -201,6 +214,7 @@ namespace pjos {
             this->analysis_track.erase(this->analysis_track.begin() + this->formula.NumOfVariables(), this->analysis_track.end());
         }
         this->evsids.FormulaUpdated();
+        this->saved_phases.SetNumOfVariables(this->formula.NumOfVariables());
     }
 
     void CdclSolver::OnVariableAssignment(Literal::UInt variable, VariableAssignment) { // Assignment was performed, update heuristics

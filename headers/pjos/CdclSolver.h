@@ -119,6 +119,7 @@ namespace pjos {
 
         std::vector<AnalysisTrackState> analysis_track;
         EVSIDSHeuristics<VariableOccurences> evsids;
+        Assignment saved_phases;
         std::set<Literal> final_conflict;
         std::function<void(const ClauseView &)> learned_clause_fn;
     };
