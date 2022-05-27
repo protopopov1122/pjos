@@ -1,4 +1,4 @@
-#include "pjos/Solver.h"
+#include "pjos/CdclSolver.h"
 #include <algorithm>
 #include <cassert>
 #include <limits>

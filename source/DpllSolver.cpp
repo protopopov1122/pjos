@@ -1,4 +1,4 @@
-#include "pjos/Solver.h"
+#include "pjos/DpllSolver.h"
 #include "pjos/Format.h"
 
 // This file contains simple implementation of DPLL solver.

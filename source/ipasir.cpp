@@ -6,7 +6,7 @@
 #include "ipasir.h"
 #endif
 
-#include "pjos/Solver.h"
+#include "pjos/CdclSolver.h"
 #include <exception>
 #include <iostream>
 #include <vector>

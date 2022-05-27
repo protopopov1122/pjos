@@ -6,7 +6,8 @@
 #include "pjos/Formula.h"
 #include "pjos/Format.h"
 #include "pjos/Dimacs.h"
-#include "pjos/Solver.h"
+#include "pjos/DpllSolver.h"
+#include "pjos/CdclSolver.h"
 #include "pjos/Error.h"
 
 using namespace pjos;

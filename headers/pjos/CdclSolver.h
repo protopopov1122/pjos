@@ -1,5 +1,5 @@
-#ifndef PJOS_SOLVER_H_
-#define PJOS_SOLVER_H_
+#ifndef PJOS_CDCL_SOLVER_H_
+#define PJOS_CDCL_SOLVER_H_
 
 #include "pjos/BaseSolver.h"
 #include "pjos/Heuristics.h"
@@ -7,41 +7,9 @@
 #include <set>
 #include <vector>
 
-// This file contains specific implementations of SAT solvers for DPLL and CDCL algorithms
+// This file contains specific implementation of SAT solver for CDCL algorithm
 
 namespace pjos {
-
-    class DpllSolver : public BaseSolver<DpllSolver> {
-     public:
-        DpllSolver(const Formula &);
-        DpllSolver(const DpllSolver &) = default;
-        DpllSolver(DpllSolver &&) = default;
-
-        ~DpllSolver() = default;
-
-        DpllSolver &operator=(const DpllSolver &) = default;
-        DpllSolver &operator=(DpllSolver &&) = default;
-
-        static const std::string &Signature();
-
-        friend class BaseSolver<DpllSolver>; // Necessary for static polymorphism implementation
-
-     private:
-        SolverStatus SolveImpl();
-    };
-
-    class ModifiableDpllSolver : public ModifiableSolverBase<ModifiableDpllSolver>, public DpllSolver {
-     public:
-        ModifiableDpllSolver();
-        ModifiableDpllSolver(Formula);
-        ModifiableDpllSolver(const ModifiableDpllSolver &) = default;
-        ModifiableDpllSolver(ModifiableDpllSolver &&) = default;
-
-        ~ModifiableDpllSolver() = default;
-
-        ModifiableDpllSolver &operator=(const ModifiableDpllSolver &) = default;
-        ModifiableDpllSolver &operator=(ModifiableDpllSolver &&) = default;
-    };
 
     class CdclSolver : public ModifiableSolverBase<CdclSolver>, public BaseSolver<CdclSolver> {
      public:
