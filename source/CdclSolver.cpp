@@ -17,14 +17,14 @@ namespace pjos {
         return index_entry.positive_clauses.size() + index_entry.negative_clauses.size();
     }
 
-    CdclSolver::CdclSolver()
-        : CdclSolver::CdclSolver(Formula{}) {}
+    CdclSolver::CdclSolver(const Heuristics::ScoringParameters &scoring)
+        : CdclSolver::CdclSolver(Formula{}, scoring) {}
 
-    CdclSolver::CdclSolver(Formula formula)
+    CdclSolver::CdclSolver(Formula formula, const Heuristics::ScoringParameters &scoring)
         : ModifiableSolverBase::ModifiableSolverBase(std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
-          evsids{this->formula, this->assignment, {1e20, 1e-20, 1, 1.05}, VariableOccurences{*this}},
+          evsids{this->formula, this->assignment, scoring, VariableOccurences{*this}},
           saved_phases{this->formula.NumOfVariables()} {}
 
     void CdclSolver::OnLearnedClause(std::function<void(const ClauseView &)> fn) {
@@ -37,7 +37,9 @@ namespace pjos {
     }
 
     SolverStatus CdclSolver::SolveImpl(bool analyze_final_conflict) {
-        this->ScanPureLiterals(std::back_inserter(this->pending_assignments)); // Find pure literals to assign those first
+        if (this->parameters.pure_literal_elimination) {
+            this->ScanPureLiterals(std::back_inserter(this->pending_assignments)); // Find pure literals to assign those first
+        }
 
         auto pending_assignments_iter = this->pending_assignments.begin();
         std::size_t number_of_assumptions{0};
@@ -91,7 +93,7 @@ namespace pjos {
                 // Simple heuristic -- assign variable to satisfy higher amount of clauses (actual status of clause is ignored and it's assumed
                 // that it's not already satisfied)
                 VariableAssignment variable_assignment;
-                if (this->saved_phases[variable] != VariableAssignment::Unassigned) {
+                if (this->parameters.phase_saving && this->saved_phases[variable] != VariableAssignment::Unassigned) {
                     variable_assignment = this->saved_phases[variable];
                 } else {
                     variable_assignment = variable_index_entry.positive_clauses.size() >= variable_index_entry.negative_clauses.size()
@@ -190,7 +192,7 @@ namespace pjos {
 
             assert(trail_entry->reason != DecisionTrail::ReasonAssumption);
 
-            if (trail_entry->reason == DecisionTrail::ReasonDecision && trail_entry->level > level) {
+            if (this->parameters.phase_saving && trail_entry->reason == DecisionTrail::ReasonDecision && trail_entry->level > level) {
                 // Decisions above current backjump level are not causes of the conflict, thus
                 // might be saved and reused later
                 this->saved_phases[trail_entry->variable] = trail_entry->assignment;

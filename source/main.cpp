@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <cstring>
 #include <getopt.h>
 #include "pjos/Formula.h"
 #include "pjos/Format.h"
@@ -26,6 +27,7 @@ static struct option long_cli_options[] = {
     {"learnts", no_argument, 0, 'l'},
     {"no-model", no_argument, 0, 'n'},
     {"use-dpll", no_argument, 0, 'D'},
+    {"set", required_argument, 0, 's'},
     {"version", no_argument, 0, 'v'},
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}
@@ -38,12 +40,14 @@ struct Options {
     bool include_model{true};
     bool use_dpll{false};
     const char *cnf_file;
+    CdclSolver::Heuristics::ScoringParameters evsids{};
+    CdclSolver::Parameters cdcl{};
 };
 
 static bool parse_options(int argc, char * const * argv, Options &options) {
     for (;;) {
         int option_index = 0;
-        int c = getopt_long (argc, argv, "a:qlnDvh", long_cli_options, &option_index);
+        int c = getopt_long (argc, argv, "a:qlnDs:vh", long_cli_options, &option_index);
         if (c == -1) {
             break;
         }
@@ -68,6 +72,32 @@ static bool parse_options(int argc, char * const * argv, Options &options) {
                 options.use_dpll = true;
                 break;
 
+            case 's': {
+                auto optarg_end = optarg + strlen(optarg);
+                auto it = std::find(optarg, optarg_end, '=');
+                if (it == optarg_end) {
+                    throw SatError{"Expected --set argument to be in the format name=value"};
+                }
+
+                std::string name{optarg, it};
+                std::string value{std::next(it, 1), optarg_end};
+                if (name.compare("evsids-decay-rate") == 0) {
+                    options.evsids.decay_rate = std::strtod(value.c_str(), nullptr);
+                } else if (name.compare("evsids-rescore-at") == 0) {
+                    auto rescore = std::strtod(value.c_str(), nullptr);
+                    options.evsids.rescore_threshold = rescore;
+                    options.evsids.rescore_factor = 1.0 / rescore;
+                } else if (name.compare("evsids-init-increment") == 0) {
+                    options.evsids.initial_increment = std::strtod(value.c_str(), nullptr);
+                } else if (name.compare("cdcl-phase-saving") == 0) {
+                    options.cdcl.phase_saving = value.compare("on") == 0;
+                } else if (name.compare("cdcl-pure-literal-elim") == 0) {
+                    options.cdcl.pure_literal_elimination = value.compare("on") == 0;
+                } else {
+                    throw SatError{"Unknown parameter assignment"};
+                }
+            } break;
+
             case 'v':
                 std::cout << PJOS_VERSION << std::endl;
                 return true;
@@ -81,8 +111,15 @@ static bool parse_options(int argc, char * const * argv, Options &options) {
                 std::cout << "\t-l,--learnts\tPrint learned clauses (available only for CDCL solver)" << std::endl;
                 std::cout << "\t-n,--no-model\tDo not print satisfying assignment" << std::endl;
                 std::cout << "\t-D,--use-dpll\tUse DPLL solver instead of CDCL" << std::endl;
+                std::cout << "\t-s,--set param\tSet solver parameter (see below)" << std::endl;
                 std::cout << "\t-v,--version\tPrint version information" << std::endl;
                 std::cout << "\t-h,--help\tPrint this help" << std::endl << std::endl;
+                std::cout << "Supported CDCL solver parameters:" << std::endl;
+                std::cout << "\tevsids-decay-rate=real number\t\tEVSIDS heuristic exponent" << std::endl;
+                std::cout << "\tevsids-rescore-at=real number\t\tEVSIDS heuristic rescoring threshold" << std::endl;
+                std::cout << "\tevsids-init-increment=real number\tEVSIDS heuristic initial increment" << std::endl;
+                std::cout << "\tcdcl-phase-saving=on|off\t\tEnable CDCL phase saving" << std::endl;
+                std::cout << "\tcdcl-pure-literal-elim=on|off\t\tEnable CDCL pure literal elimination" << std::endl << std::endl;
                 std::cout << "Author: Jevgenijs Protopopovs <jprotopopov1122@gmail.com>" << std::endl;
                 std::cout << "URL: <https://github.com/protopopov1122/pjos>" << std::endl;
                 return true;
@@ -140,7 +177,8 @@ static void run_cdcl_solver(const Options &options) {
     print_greeting<CdclSolver>(options);
 
     std::size_t learned_clauses = 0;
-    CdclSolver solver(load_formula(options));
+    CdclSolver solver(load_formula(options), options.evsids);
+    solver.GetParameters() = options.cdcl;
     setup_cdcl_callbacks(options, solver, learned_clauses);
 
     std::vector<Literal> final_conflict;

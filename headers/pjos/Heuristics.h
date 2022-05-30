@@ -16,10 +16,10 @@ namespace pjos {
     class EVSIDSHeuristics {
      public:
         struct ScoringParameters {
-            double rescore_threshold;
-            double rescore_factor;
-            double initial_increment;
-            double decay_rate;
+            double rescore_threshold{1e20};
+            double rescore_factor{1e-20};
+            double initial_increment{1.0};
+            double decay_rate{1.05};
         };
 
         EVSIDSHeuristics(const Formula &formula, const Assignment &assignment, const ScoringParameters &scoring, T variable_stats)

@@ -17,9 +17,21 @@
 namespace pjos {
 
     class CdclSolver : public ModifiableSolverBase<CdclSolver>, public BaseSolver<CdclSolver> {
+        struct VariableOccurences { // Calculate total number of variable occurences in the formula
+            std::size_t operator()(Literal::UInt) const;
+
+            CdclSolver &solver;
+        };
+
      public:
-        CdclSolver();
-        CdclSolver(Formula);
+        using Heuristics = EVSIDSHeuristics<VariableOccurences>;
+        struct Parameters {
+            bool pure_literal_elimination{true};
+            bool phase_saving{true};
+        };
+
+        CdclSolver(const Heuristics::ScoringParameters & = {});
+        CdclSolver(Formula, const Heuristics::ScoringParameters & = {});
         CdclSolver(const CdclSolver &) = default;
         CdclSolver(CdclSolver &&) = default;
 
@@ -27,6 +39,10 @@ namespace pjos {
 
         CdclSolver &operator=(const CdclSolver &) = default;
         CdclSolver &operator=(CdclSolver &&) = default;
+
+        inline Parameters &GetParameters() {
+            return this->parameters;
+        }
 
         void OnLearnedClause(std::function<void(const ClauseView &)>);
 
@@ -57,12 +73,6 @@ namespace pjos {
             Untracked, // Assignment is not involved in the analysis graph at the moment
             Pending,   // Assignment was seen by the analyzer and to be inspected later
             Processed  // Assignment was seen and inspected by the analyzer
-        };
-
-        struct VariableOccurences { // Calculate total number of variable occurences in the formula
-            std::size_t operator()(Literal::UInt) const;
-
-            CdclSolver &solver;
         };
 
         SolverStatus SolveImpl(bool = false);
@@ -122,8 +132,9 @@ namespace pjos {
             return pending;
         }
 
+        Parameters parameters{};
         std::vector<AnalysisTrackState> analysis_track;
-        EVSIDSHeuristics<VariableOccurences> evsids;
+        Heuristics evsids;
         Assignment saved_phases;
         std::set<Literal> final_conflict;
         std::function<void(const ClauseView &)> learned_clause_fn;
