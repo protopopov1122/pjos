@@ -73,28 +73,32 @@ static bool parse_options(int argc, char * const * argv, Options &options) {
                 break;
 
             case 's': {
-                auto optarg_end = optarg + strlen(optarg);
-                auto it = std::find(optarg, optarg_end, '=');
+                char *optarg_end = optarg + strlen(optarg);
+                char *it = std::find(optarg, optarg_end, '=');
                 if (it == optarg_end) {
-                    throw SatError{"Expected --set argument to be in the format name=value"};
+                    std::cerr << "Expected --set option to be followed by a parameter assignment in format name=value" << std::endl;
+                    throw SatError{"Failed to parse command line arguments"};
                 }
 
-                std::string name{optarg, it};
-                std::string value{std::next(it, 1), optarg_end};
+                std::string_view name{optarg, static_cast<std::size_t>(it - optarg)};
+                const char *value = ++it;
                 if (name.compare("evsids-decay-rate") == 0) {
-                    options.evsids.decay_rate = std::strtod(value.c_str(), nullptr);
+                    options.evsids.decay_rate = std::strtod(value, nullptr);
                 } else if (name.compare("evsids-rescore-at") == 0) {
-                    auto rescore = std::strtod(value.c_str(), nullptr);
+                    auto rescore = std::strtod(value, nullptr);
                     options.evsids.rescore_threshold = rescore;
                     options.evsids.rescore_factor = 1.0 / rescore;
                 } else if (name.compare("evsids-init-increment") == 0) {
-                    options.evsids.initial_increment = std::strtod(value.c_str(), nullptr);
+                    options.evsids.initial_increment = std::strtod(value, nullptr);
                 } else if (name.compare("cdcl-phase-saving") == 0) {
-                    options.cdcl.phase_saving = value.compare("on") == 0;
+                    std::string_view value_view{value, static_cast<std::size_t>(optarg_end - value)};
+                    options.cdcl.phase_saving = value_view.compare("on") == 0;
                 } else if (name.compare("cdcl-pure-literal-elim") == 0) {
-                    options.cdcl.pure_literal_elimination = value.compare("on") == 0;
+                    std::string_view value_view{value, static_cast<std::size_t>(optarg_end - value)};
+                    options.cdcl.pure_literal_elimination = value_view.compare("on") == 0;
                 } else {
-                    throw SatError{"Unknown parameter assignment"};
+                    std::cerr << "Unknown paramter \'" << name << "\' to set" << std::endl;
+                    throw SatError{"Failed to parse command line arguments"};
                 }
             } break;
 
