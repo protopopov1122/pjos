@@ -27,14 +27,28 @@ pjos_source = [
   'source/main.cpp'
 ]
 
-pjos_headers = include_directories('headers', 'ipasir')
-pjos_defines = ['-DPJOS_IPASIR_INTERFACE_ENABLE', '-DPJOS_IPASIR_INTERFACE_ABORT_ON_ERROR']
+pjos_headers = [include_directories('headers')]
+pjos_defines = []
+
+if get_option('ipasir_support')
+  pjos_defines += '-DPJOS_IPASIR_INTERFACE_ENABLE'
+endif
+
+if get_option('ipasir_abort_on_error')
+  pjos_defines += '-DPJOS_IPASIR_INTERFACE_ABORT_ON_ERROR'
+endif
+
+if get_option('ipasir_header') != ''
+  pjos_defines += '-DPJOS_IPASIR_INTERFACE_HEADER="' + get_option('ipasir_header') + '"'
+elif get_option('ipasir_support')
+  pjos_headers += [include_directories('ipasir')]
+endif
 
 pjos_lib = static_library('pjos', pjos_lib_source,
   cpp_args : pjos_defines,
-  include_directories : [pjos_headers])
+  include_directories : pjos_headers)
 
 pjos = executable('pjos', pjos_source,
   cpp_args : pjos_defines,
-  include_directories : [pjos_headers],
+  include_directories : pjos_headers,
   link_with : [pjos_lib])
