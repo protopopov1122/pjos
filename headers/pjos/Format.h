@@ -46,7 +46,7 @@ namespace pjos {
         };
 
         struct StringFormatter {
-            const std::string &str;
+            std::string_view str;
         };
 
         std::ostream &operator<<(std::ostream &, const LiteralFormatter &);
@@ -77,7 +77,7 @@ namespace pjos {
     internal::FormulaFormatter Format(const Formula &);
     internal::AssignmentFormatter Format(const Assignment &);
     internal::SolverStatusFormatter Format(SolverStatus);
-    internal::StringFormatter Format(const std::string &);
+    internal::StringFormatter Format(std::string_view);
 
     template <typename T>
     internal::SolverFormatter<T> Format(const BaseSolver<T> &solver, bool include_model = true) {

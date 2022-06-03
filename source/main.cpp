@@ -17,7 +17,7 @@
 #include "pjos/Error.h"
 
 using namespace pjos;
-using namespace std::string_literals;
+using namespace std::string_view_literals;
 
 static std::chrono::high_resolution_clock hrclock;
 
@@ -146,7 +146,7 @@ template <typename T>
 static void print_greeting(const Options &options) {
     if (!options.quiet) {
         std::cout << Format(T::Signature()) << std::endl;
-        std::cout << Format("Input: "s) << (options.cnf_file != nullptr ? options.cnf_file : "<stdin>") << std::endl;
+        std::cout << Format("Input: "sv) << (options.cnf_file != nullptr ? options.cnf_file : "<stdin>") << std::endl;
     }
 }
 
@@ -168,7 +168,7 @@ static void setup_cdcl_callbacks(const Options &options, CdclSolver &solver, std
     if (options.print_learned) {
         solver.OnLearnedClause([&learned_clauses](const auto &clause) {
             learned_clauses++;
-            std::cout << Format("Learn clause: "s) << Format(clause) << std::endl;
+            std::cout << Format("Learn clause: "sv) << Format(clause) << std::endl;
         });
     } else if (!options.quiet) {
         solver.OnLearnedClause([&learned_clauses](const auto &) {
@@ -196,15 +196,15 @@ static void run_cdcl_solver(const Options &options) {
     auto duration = hrclock.now() - begin_timestamp;
 
     if (!options.quiet) {
-        std::cout << Format("Solved in "s) << std::chrono::duration_cast<std::chrono::microseconds>(duration).count() << " microsecond(s)" << std::endl;
+        std::cout << Format("Solved in "sv) << std::chrono::duration_cast<std::chrono::microseconds>(duration).count() << " microsecond(s)" << std::endl;
         if (status == SolverStatus::Unsatisfied && !options.assumptions.empty()) {
-            std::cout << Format("Final conflict: "s);
+            std::cout << Format("Final conflict: "sv);
             for (auto literal : final_conflict) {
                 std::cout << Format(literal) << ' ';
             }
             std::cout << std::endl;
         }
-        std::cout << Format("Learned "s) << learned_clauses << " clause(s)" << std::endl;
+        std::cout << Format("Learned "sv) << learned_clauses << " clause(s)" << std::endl;
     }
     std::cout << Format(solver, options.include_model) << std::endl;
 }
@@ -224,7 +224,7 @@ static void run_dpll_solver(const Options &options) {
     auto duration = hrclock.now() - begin_timestamp;
 
     if (!options.quiet) {
-        std::cout << Format("Solved in "s) << std::chrono::duration_cast<std::chrono::microseconds>(duration).count() << " microsecond(s)" << std::endl;
+        std::cout << Format("Solved in "sv) << std::chrono::duration_cast<std::chrono::microseconds>(duration).count() << " microsecond(s)" << std::endl;
     }
     std::cout << Format(solver, options.include_model) << std::endl;
 }

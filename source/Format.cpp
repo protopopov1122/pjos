@@ -92,7 +92,7 @@ namespace pjos {
         return {status};
     }
 
-    internal::StringFormatter Format(const std::string &str) {
+    internal::StringFormatter Format(std::string_view str) {
         return {str};
     }
 }
