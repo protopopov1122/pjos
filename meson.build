@@ -3,7 +3,7 @@ project('pjos_solver', 'cpp', default_options : ['cpp_std=c++17', 'warning_level
 if meson.get_compiler('cpp').get_id() == 'gcc' or meson.get_compiler('cpp').get_id() == 'clang'
   add_project_arguments('-pedantic', language : 'cpp')
 
-  if get_option('buildtype').startswith('debug')
+  if get_option('buildtype') == 'debug'
     add_project_arguments('-DPJOS_DEBUG_VALIDATIONS_ENABLE', language : 'cpp')
   endif
 endif
