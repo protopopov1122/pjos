@@ -8,7 +8,7 @@
 
 #include "pjos/Literal.h"
 #include <memory>
-#include <set>
+#include <unordered_set>
 
 namespace pjos {
 
@@ -107,7 +107,7 @@ namespace pjos {
         Clause Make();
 
      private:
-        std::set<Literal> literals;
+        std::unordered_set<Literal> literals;
         Literal::UInt num_of_variables{0};
     };
 }

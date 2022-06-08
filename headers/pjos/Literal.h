@@ -35,10 +35,32 @@ namespace pjos {
         using UInt = std::uint_fast64_t;
 
         Literal() = default;
-        Literal(Int);
-        Literal(UInt, VariableAssignment);
         Literal(const Literal &) = default;
         Literal(Literal &&) = default;
+
+
+        Literal(Int literal)
+            : literal{literal} {
+#ifdef PJOS_HOTPATH_PARAM_CHECKS
+            if (literal == Literal::Terminator) {
+                throw SatError{"Literal cannot be zero"};
+            }
+#endif
+        }
+
+        Literal(UInt literal, VariableAssignment assn) {
+#ifdef PJOS_HOTPATH_PARAM_CHECKS
+            if (literal == Literal::Terminator) {
+                throw SatError{"Literal cannot be zero"};
+            }
+#endif
+
+            if (assn == VariableAssignment::False) {
+                this->literal = -1 * static_cast<Int>(literal);
+            } else {   
+                this->literal = static_cast<Int>(literal);
+            }
+        }
 
         ~Literal() = default;
 
@@ -80,7 +102,9 @@ namespace pjos {
             return this->literal != other.literal;
         }
 
-        friend void swap(Literal &, Literal &);
+        friend void swap(Literal &l1, Literal &l2) {
+            std::swap(l1.literal, l2.literal);
+        }
 
         static constexpr Literal::Int Terminator{0};
 

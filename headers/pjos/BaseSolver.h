@@ -107,7 +107,7 @@ namespace pjos {
 
         void Assign(Literal::UInt variable, VariableAssignment assignment) {
             this->assignment[variable] = assignment;
-            this->UpdateWatchers(variable);
+            this->UpdateWatchers(variable, assignment);
             static_cast<C *>(this)->OnVariableAssignment(variable, assignment);
         }
 
@@ -360,13 +360,13 @@ namespace pjos {
             }
         }
 
-        void UpdateWatchers(Literal::UInt variable) { // To be called whenever a variable gets assigned to update all affected watchers
+        void UpdateWatchers(Literal::UInt variable, VariableAssignment assn) { // To be called whenever a variable gets assigned to update all affected watchers
             auto &var_index = this->VariableIndex(variable);
             for (auto affected_watcher : var_index.positive_clauses) {
-                this->watchers[affected_watcher].Update(this->assignment, variable);
+                this->watchers[affected_watcher].Update(this->assignment, variable, assn);
             }
             for (auto affected_watcher : var_index.negative_clauses) {
-                this->watchers[affected_watcher].Update(this->assignment, variable);
+                this->watchers[affected_watcher].Update(this->assignment, variable, assn);
             }
         }
 

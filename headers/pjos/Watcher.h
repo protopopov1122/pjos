@@ -37,7 +37,7 @@ namespace pjos {
             return this->watched_literals;
         }
 
-        void Update(const Assignment &, Literal::UInt);
+        void Update(const Assignment &, Literal::UInt, VariableAssignment);
         void Rescan(const Assignment &);
 
      private:

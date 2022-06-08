@@ -1,3 +1,4 @@
 option('ipasir_support', type: 'boolean', value: 'true', description: 'Enable IPASIR compatibility layer')
 option('ipasir_abort_on_error', type: 'boolean', value: 'true', description: 'Force IPASIR layer to abort on error')
+option('hotpath_param_checks', type: 'boolean', value: 'false', description: 'Perform extra parameter checks on hot code paths')
 option('ipasir_header', type: 'string', value: '', description: 'Override default IPASIR header location')

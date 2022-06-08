@@ -56,13 +56,17 @@ namespace pjos {
                 this->Assign(variable, new_assignment);
             } else if (pending_assignments_iter == this->pending_assignments.end()) { // There are no pending assignments.
                                                                                       // Find an unassigned variable and assign it to true
+#ifndef NDEBUG
                 bool made_decision = false;
+#endif
                 for (std::int64_t variable = this->assignment.NumOfVariables(); variable > 0; variable--) {
                     auto assn = this->assignment[variable];
                     if (assn == VariableAssignment::Unassigned) {
                         this->trail.Decision(variable, VariableAssignment::True);
                         this->Assign(variable, VariableAssignment::True);
+#ifndef NDEBUG
                         made_decision = true;
+#endif
                         break;
                     }
                 }

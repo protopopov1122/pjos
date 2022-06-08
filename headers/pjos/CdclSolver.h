@@ -9,7 +9,7 @@
 #include "pjos/BaseSolver.h"
 #include "pjos/Heuristics.h"
 #include <algorithm>
-#include <set>
+#include <unordered_set>
 #include <vector>
 
 // This file contains specific implementation of SAT solver for CDCL algorithm
@@ -128,9 +128,10 @@ namespace pjos {
 
         Parameters parameters{};
         std::vector<AnalysisTrackState> analysis_track;
+        ClauseBuilder learned_clause{};
         Heuristics evsids;
         Assignment saved_phases;
-        std::set<Literal> final_conflict;
+        std::unordered_set<Literal> final_conflict;
         std::function<void(const ClauseView &)> learned_clause_fn;
     };
 }

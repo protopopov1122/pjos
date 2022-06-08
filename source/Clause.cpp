@@ -9,19 +9,17 @@
 
 namespace pjos {
 
-    static bool var_comparator(const Literal &l1, const Literal &l2) {
-        return l1.Variable() < l2.Variable();
-    }
-
     ClauseView::ClauseView(const Literal *clause, std::size_t clause_length, Literal::UInt num_of_variables)
         : clause{clause}, clause_length{clause_length}, num_of_variables{num_of_variables} {}
 
     bool ClauseView::HasVariable(Literal::UInt var) const {
-        return std::binary_search(this->begin(), this->end(), var, var_comparator);
+        return std::find_if(this->begin(), this->end(), [var](Literal l) {
+            return l.Variable() == var;
+        }) != this->end();
     }
 
     ClauseView::IteratorType ClauseView::FindLiteral(Literal literal) const {
-        auto it = std::lower_bound(this->begin(), this->end(), literal, std::less<Literal>{});
+        auto it = std::find(this->begin(), this->end(), literal);
         if (it != this->end() && literal == *it) {
             return it;
         } else {

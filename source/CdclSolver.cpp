@@ -114,8 +114,6 @@ namespace pjos {
         assert(this->trail.Level() > 0);
         std::fill(this->analysis_track.begin(), this->analysis_track.end(), AnalysisTrackState::Untracked); // Clean up assignment tracking information
 
-        ClauseBuilder learned_clause;
-
         // Breadth-first search in a subgraph of the decision graph that is delimited by
         // UIP cut. That is - only nodes that are not below current decision level are considered
         // and the search stops once UIP if found

@@ -6,6 +6,10 @@ if meson.get_compiler('cpp').get_id() == 'gcc' or meson.get_compiler('cpp').get_
   if get_option('buildtype') == 'debug'
     add_project_arguments('-DPJOS_DEBUG_VALIDATIONS_ENABLE', language : 'cpp')
   endif
+
+  if get_option('buildtype') == 'release'
+    add_project_arguments('-DNDEBUG', language : 'cpp')
+  endif
 endif
 
 pjos_lib_source = [
@@ -19,12 +23,11 @@ pjos_lib_source = [
   'source/Format.cpp',
   'source/Formula.cpp',
   'source/Heuristics.cpp',
-  'source/Literal.cpp',
   'source/Watcher.cpp',
   'source/ipasir.cpp'
 ]
 
-pjos_source = [
+pjos_source = pjos_lib_source + [
   'source/main.cpp'
 ]
 
@@ -39,6 +42,10 @@ if get_option('ipasir_abort_on_error')
   pjos_defines += '-DPJOS_IPASIR_INTERFACE_ABORT_ON_ERROR'
 endif
 
+if get_option('hotpath_param_checks')
+  pjos_defines += '-DPJOS_HOTPATH_PARAM_CHECKS'
+endif
+
 if get_option('ipasir_header') != ''
   pjos_defines += '-DPJOS_IPASIR_INTERFACE_HEADER="' + get_option('ipasir_header') + '"'
 elif get_option('ipasir_support')
@@ -51,5 +58,4 @@ pjos_lib = static_library('pjos', pjos_lib_source,
 
 pjos = executable('pjos', pjos_source,
   cpp_args : pjos_defines,
-  include_directories : pjos_headers,
-  link_with : [pjos_lib])
+  include_directories : pjos_headers)
