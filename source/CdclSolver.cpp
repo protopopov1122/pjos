@@ -12,10 +12,6 @@
 
 namespace pjos {
 
-    std::size_t CdclSolver::VariableOccurences::operator()(Literal::UInt) const {
-        return 0;
-    }
-
     CdclSolver::CdclSolver(const Heuristics::ScoringParameters &scoring)
         : CdclSolver::CdclSolver(Formula{}, scoring) {}
 
@@ -85,7 +81,7 @@ namespace pjos {
 
                 this->evsids.NextIteration();
             } else if (pending_assignments_iter == this->pending_assignments.end()) { // There are no pending assignments. Select variable for further assignment.
-                auto variable = this->evsids.PopVariable(); // The most active unassigned variable
+                Literal::UInt variable = this->evsids.PopVariable(); // The most active unassigned variable
                 assert(variable != Literal::Terminator);
                 assert(this->assignment[variable] == VariableAssignment::Unassigned);
 

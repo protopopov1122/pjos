@@ -4,9 +4,9 @@ set -xe
 SCRIPT_DIR="$(dirname $0)"
 SAT_SOLVER="$1"
 
-for sample in $(find $SCRIPT_DIR/samples -type f -print);
+for sample in $(find $SCRIPT_DIR/samples -type f -name "*.cnf" -print);
 do
-    python "$SCRIPT_DIR/sample_test.py" "$SAT_SOLVER" 180 "$sample"
+    python "$SCRIPT_DIR/sample_test.py" "$SAT_SOLVER" 240 "$sample"
 done
 python "$SCRIPT_DIR/generate_test.py" "$SAT_SOLVER" 10000 30 php 1 8 1 8
 python "$SCRIPT_DIR/generate_test.py" "$SAT_SOLVER" 1000 30 count 7 9 3 5

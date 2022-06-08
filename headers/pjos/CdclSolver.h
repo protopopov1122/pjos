@@ -17,12 +17,6 @@
 namespace pjos {
 
     class CdclSolver : public ModifiableSolverBase<CdclSolver>, public BaseSolver<CdclSolver> {
-        struct VariableOccurences { // Calculate total number of variable occurences in the formula
-            std::size_t operator()(Literal::UInt) const;
-
-            CdclSolver &solver;
-        };
-
      public:
         using Heuristics = EVSIDSHeuristics;
         struct Parameters {
