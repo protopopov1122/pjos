@@ -12,9 +12,8 @@
 
 namespace pjos {
 
-    std::size_t CdclSolver::VariableOccurences::operator()(Literal::UInt variable) const {
-        const auto &index_entry = this->solver.VariableIndex(variable);
-        return index_entry.positive_clauses.size() + index_entry.negative_clauses.size();
+    std::size_t CdclSolver::VariableOccurences::operator()(Literal::UInt) const {
+        return 0;
     }
 
     CdclSolver::CdclSolver(const Heuristics::ScoringParameters &scoring)
@@ -24,7 +23,7 @@ namespace pjos {
         : ModifiableSolverBase::ModifiableSolverBase(std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
           analysis_track(formula.NumOfVariables(), AnalysisTrackState::Untracked),
-          evsids{this->formula, this->assignment, scoring, VariableOccurences{*this}},
+          evsids{this->formula, this->assignment, scoring},
           saved_phases{this->formula.NumOfVariables()} {}
 
     void CdclSolver::OnLearnedClause(std::function<void(const ClauseView &)> fn) {
@@ -47,8 +46,6 @@ namespace pjos {
             if (this->interrupt_requested.load() || (this->interrupt_request_fn != nullptr && this->interrupt_request_fn())) {
                 return SolverStatus::Unknown;
             }
-
-            this->evsids.NextIteration();
 
             auto [bcp_result, conflict_clause] = this->UnitPropagation();
             if (bcp_result == UnitPropagationResult::Sat) { // BCP satisfied the formula. Check whether all assumptions are also satisfied.
@@ -85,20 +82,18 @@ namespace pjos {
                     }
                     return SolverStatus::Unsatisfied;
                 }
-            } else if (pending_assignments_iter == this->pending_assignments.end()) { // There are no pending assignments. Select variable for further assignment.
-                auto variable = this->evsids.TopVariable(); // The most active unassigned variable
-                assert(variable != Literal::Terminator);
-                const auto &variable_index_entry = this->VariableIndex(variable);
 
-                // Simple heuristic -- assign variable to satisfy higher amount of clauses (actual status of clause is ignored and it's assumed
-                // that it's not already satisfied)
+                this->evsids.NextIteration();
+            } else if (pending_assignments_iter == this->pending_assignments.end()) { // There are no pending assignments. Select variable for further assignment.
+                auto variable = this->evsids.PopVariable(); // The most active unassigned variable
+                assert(variable != Literal::Terminator);
+                assert(this->assignment[variable] == VariableAssignment::Unassigned);
+
                 VariableAssignment variable_assignment;
                 if (this->parameters.phase_saving && this->saved_phases[variable] != VariableAssignment::Unassigned) {
                     variable_assignment = this->saved_phases[variable];
                 } else {
-                    variable_assignment = variable_index_entry.positive_clauses.size() >= variable_index_entry.negative_clauses.size()
-                        ? VariableAssignment::True
-                        : VariableAssignment::False;
+                    variable_assignment = VariableAssignment::True;
                 }
                 this->trail.Decision(variable, variable_assignment);
                 this->Assign(variable, variable_assignment);
@@ -147,8 +142,8 @@ namespace pjos {
                 } else { // The assignment is part of UIP cut, add it to learned clause
                     learned_clause.Add(Literal{variable, FlipVariableAssignment(trail_entry->assignment)});
                     backjump_level = std::max(backjump_level, trail_entry->level);
-                    this->evsids.VariableActive(trail_entry->variable);
                 }
+                this->evsids.VariableActive(variable);
             }
             number_of_paths--;
 
@@ -156,6 +151,7 @@ namespace pjos {
                 assert(trail_index > 0);
                 trail_index--;
             }
+            assert(this->AnalysisTrackOf(this->trail[trail_index].variable) == AnalysisTrackState::Pending);
             this->AnalysisTrackOf(this->trail[trail_index].variable) = AnalysisTrackState::Processed;
             const auto &trail_entry = this->trail[trail_index];
             if (DecisionTrail::IsPropagatedFromClause(trail_entry.reason)) { // The assignment is a result of propagation

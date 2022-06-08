@@ -9,21 +9,22 @@
 #include "pjos/Formula.h"
 #include "pjos/Assignment.h"
 #include <algorithm>
+#include <cmath>
+#include <limits>
 
 namespace pjos {
 
-    template <typename T>
     class EVSIDSHeuristics {
      public:
         struct ScoringParameters {
-            double rescore_threshold{1e20};
-            double rescore_factor{1e-20};
+            double rescore_threshold{1e100};
+            double rescore_factor{1e-100};
             double initial_increment{1.0};
             double decay_rate{1.05};
         };
 
-        EVSIDSHeuristics(const Formula &formula, const Assignment &assignment, const ScoringParameters &scoring, T variable_stats)
-            : formula{formula}, assignment{assignment}, scoring{scoring}, variable_stats{variable_stats} {
+        EVSIDSHeuristics(const Formula &formula, const Assignment &assignment, const ScoringParameters &scoring)
+            : formula{formula}, assignment{assignment}, scoring{scoring} {
             
             this->FormulaUpdated();
         }
@@ -34,12 +35,12 @@ namespace pjos {
 
             for (std::size_t i = 0; i < num_of_scores; i++) {
                 if (i < this->scores.size()) {
-                    this->scores[i] = this->variable_stats(i + 1);
+                    this->scores[i] = 0;
                 }
             }
 
             for (std::size_t i = num_of_scores; i < num_of_variables; i++) {
-                this->scores.push_back(this->variable_stats(i + 1));
+                this->scores.push_back(0);
             }
 
             this->ordered_variables.clear();
@@ -48,7 +49,6 @@ namespace pjos {
             }
             std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
             this->score_increment = this->scoring.initial_increment;
-            this->update_heap = false;
         }
 
         void FormulaUpdated() {
@@ -57,7 +57,7 @@ namespace pjos {
             
             if (num_of_scores < num_of_variables) {
                 for (std::size_t i = num_of_scores; i < num_of_variables; i++) {
-                    this->scores.push_back(this->variable_stats(i + 1));
+                    this->scores.push_back(0);
                     this->ordered_variables.push_back(i + 1);
                 }
             } else if (num_of_scores > num_of_variables) {
@@ -69,7 +69,6 @@ namespace pjos {
             }
 
             std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
-            this->update_heap = false;
         }
 
         void NextIteration() {
@@ -79,56 +78,64 @@ namespace pjos {
         void VariableActive(Literal::UInt variable) {
             auto &score = this->scores[variable - 1];
             score += this->score_increment;
+            assert(!std::isinf(score));
+            assert(score >= 0.0);
             if (score > this->scoring.rescore_threshold) {
                 for (auto &score : this->scores) {
-                    score *= this->scoring.rescore_threshold;
+                    score /= this->scoring.rescore_threshold;
+                    assert(!std::isinf(score));
+                    assert(score >= 0.0);
                 }
-                this->score_increment = this->scoring.initial_increment;
+                this->score_increment /= this->scoring.rescore_threshold;
             }
 
-            this->update_heap = true;
+            std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
         }
 
-        void VariableAssigned(Literal::UInt) {
-            this->update_heap = true;
+        void VariableAssigned(Literal::UInt variable) {
+            auto assn = this->assignment[variable];
+            if (assn == VariableAssignment::Unassigned) {
+                this->ordered_variables.push_back(variable);
+                std::push_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
+            }
         }
      
-        Literal::UInt TopVariable() {
-            if (this->update_heap) {
-                std::make_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
-                this->update_heap = false;
+        Literal::UInt PopVariable() {
+            while (!this->ordered_variables.empty()) {
+                std::pop_heap(this->ordered_variables.begin(), this->ordered_variables.end(), Comparator{*this});
+                auto variable = this->ordered_variables.back();
+                this->ordered_variables.pop_back();
+                if (this->assignment[variable] == VariableAssignment::Unassigned) {
+#ifdef PJOS_DEBUG_VALIDATIONS_ENABLE
+                    for (auto v : this->ordered_variables) {
+                        assert(this->assignment[v] != VariableAssignment::Unassigned || this->scores[v - 1] <= this->scores[variable - 1]);
+                    }
+#endif
+                    return variable;
+                }
             }
-            if (this->ordered_variables.empty()) {
-                return Literal::Terminator;
-            } else {
-                return this->ordered_variables.front();
-            }
+
+            return Literal::Terminator;
         }
 
      private:
         struct Comparator {
             bool operator()(Literal::UInt variable1, Literal::UInt variable2) const {
-                auto score1 = this->evsids.assignment[variable1] == VariableAssignment::Unassigned
-                    ? this->evsids.scores[variable1 - 1]
-                    : -1.0;
-                auto score2 = this->evsids.assignment[variable2] == VariableAssignment::Unassigned
-                    ? this->evsids.scores[variable2 - 1]
-                    : -1.0;
+                double score1 = this->evsids.scores[variable1 - 1];
+                double score2 = this->evsids.scores[variable2 - 1];
 
-                return score1 < score2 || (score1 == score2 && variable1 >= variable2);
+                return score1 < score2 || (!(score1 > score2) && variable1 < variable2);
             }
 
-            EVSIDSHeuristics<T> &evsids;
+            EVSIDSHeuristics &evsids;
         };
 
         const Formula &formula;
         const Assignment &assignment;
         ScoringParameters scoring;
-        T variable_stats;
         std::vector<double> scores;
         double score_increment{1.0};
         std::vector<Literal::UInt> ordered_variables;
-        bool update_heap{false};
     };
 }
 

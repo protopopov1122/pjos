@@ -24,7 +24,7 @@ namespace pjos {
         };
 
      public:
-        using Heuristics = EVSIDSHeuristics<VariableOccurences>;
+        using Heuristics = EVSIDSHeuristics;
         struct Parameters {
             bool pure_literal_elimination{true};
             bool phase_saving{true};
