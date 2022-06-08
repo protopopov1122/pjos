@@ -4,7 +4,7 @@ set -xe
 SCRIPT_DIR="$(dirname $0)"
 SAT_SOLVER="$1"
 
-for sample in $(find $SCRIPT_DIR/samples -type f -name "*.cnf" -print);
+for sample in $(find $SCRIPT_DIR/samples -name "*.cnf" -print -or -name "*.in" -print);
 do
     python "$SCRIPT_DIR/sample_test.py" "$SAT_SOLVER" 240 "$sample"
 done
