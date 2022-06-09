@@ -23,6 +23,9 @@ in DIMACS format  and then validate solver output using [CaDiCaL](https://github
 The solver offers command line utility, documentation for it can be obtained via running it with `--help`
 option.
 
+The solver is rather slow, mainly due to it's algorithmical simplicity (many potentially beneficial solving techniques are not implemented),
+as well as lack of specific optimizations (e.g. custom allocator for clauses, clause DB management and garbage collection, etc).
+
 ### Author & License
 Author: Protopopovs Jevgenijs
 
