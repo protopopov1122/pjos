@@ -8,6 +8,8 @@
 
 #include "pjos/Base.h"
 
+// Basic constant used accross the solver source code
+
 #define PJOS_IDENTIFIER "PJOS SAT Solver"
 #define PJOS_VERSION "v0.0.1"
 

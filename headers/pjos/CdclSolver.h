@@ -12,7 +12,7 @@
 #include <unordered_set>
 #include <vector>
 
-// This file contains specific implementation of SAT solver for CDCL algorithm
+// SAT solver implementing CDCL algorithm along with some more sophisticated optimizations.
 
 namespace pjos {
 

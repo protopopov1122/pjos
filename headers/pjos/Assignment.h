@@ -10,6 +10,12 @@
 #include <utility>
 #include <vector>
 
+// Assignment contains information of current variable states.
+// Each variable can be true, false or unassigned. Assignment
+// supports read-write access, as well as traversal of variables
+// in assignment. Whenever the number of variables in formula changes,
+// assignment needs to be notified of the change.
+
 namespace pjos {
 
     namespace internal {

@@ -6,13 +6,20 @@
 #ifndef PJOS_CLAUSE_H_
 #define PJOS_CLAUSE_H_
 
+// Data structures that represent formula clauses.
+// Each clause consists of a set of unique literals (duplicate literals
+// bring no value). Clauses are immutable, can be traversed using
+// iterators, provide random access to elements and have literal/variable
+// search capability.
+
 #include "pjos/Literal.h"
 #include <memory>
 #include <unordered_set>
 
 namespace pjos {
 
-    class ClauseView {
+    class ClauseView { // Providing operations on clause in non-owned memory block.
+                       // Cheap to copy, however shall never outline clause owner.
      public:
         using IteratorType = const Literal *;
 
@@ -68,7 +75,7 @@ namespace pjos {
         Literal::UInt num_of_variables;
     };
 
-    class Clause : public ClauseView {
+    class Clause : public ClauseView { // Clause owning it's own memory
      public:
         Clause(const ClauseView &);
         Clause(Clause &&) = default;
@@ -91,7 +98,10 @@ namespace pjos {
         std::unique_ptr<Literal[]> clause;
     };
 
-    class ClauseBuilder {
+    class ClauseBuilder { // Helper class for building clauses.
+                          // For allocation performance reasons it might be beneficial to keep
+                          // the builder in static memory/class field and reuse it,
+                          // avoidit allocating it on stack
      public:
         ClauseBuilder() = default;
         ClauseBuilder(const ClauseBuilder &) = delete;

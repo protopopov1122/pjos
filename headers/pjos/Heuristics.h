@@ -11,8 +11,13 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
-#include <iostream>
 #include <unordered_set>
+
+// Exponential variable state independent decaying sum (EVSIDS) heuristic
+// keeps track of variable activity during the search and suggests the next
+// variable to assign based on it's scoring. Exponential component of the heuristic
+// means that on each iteration variable activity is valued more than the activity
+// of previous iterations (rescaling of scores is performed automatically).
 
 namespace pjos {
 

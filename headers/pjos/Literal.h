@@ -12,6 +12,14 @@
 #include <functional>
 #include <utility>
 
+// Literal represents a variable with assigned polarity.
+// The size of the class corresponds to a single integral value,
+// thus it shall be cheap to copy. Literals are read-only
+// and provide methods to obtain underlying variable,
+// assignment that satisfied literal, as well as evaluate
+// variable assignment with respect to the literal.
+// Literals are comparable and hashable.
+
 namespace pjos {
 
     inline constexpr VariableAssignment FlipVariableAssignment(VariableAssignment assn) {

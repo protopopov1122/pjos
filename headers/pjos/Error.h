@@ -10,6 +10,8 @@
 #include <exception>
 #include <string>
 
+// Exception class used in all throw statements pefromed by the solver
+
 namespace pjos {
 
     class SatError : public std::exception {

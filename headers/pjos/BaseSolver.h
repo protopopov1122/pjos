@@ -16,7 +16,7 @@
 #include <cassert>
 #include <vector>
 
-// This file contains base class for SAT solver implementation.
+// Base class for SAT solver implementation.
 // The base solver contains common data structures (variable index, watchers, decision trail)
 // that can be re-used by different SAT solving algorithms (e.g. DPLL, CDCL). Specific
 // algorithms are expected to extend base class to benefit from it's functionality.

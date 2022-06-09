@@ -9,6 +9,8 @@
 #include "pjos/Formula.h"
 #include <iosfwd>
 
+// Simple DIMACS format parser
+
 namespace pjos {
 
     class DimacsLoader {

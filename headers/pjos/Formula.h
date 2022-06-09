@@ -10,6 +10,13 @@
 #include <iterator>
 #include <vector>
 
+// Formula contains an array of clauses. It can be traversed via
+// iterators or random access. Formula owns clauses that it contains.
+// Content of clauses in the formula is immutable, however formula itself
+// can be modified by adding/removing clauses. Additionally, formula
+// keeps track of current number of variables used by clauses, as it
+// is useful information to be accessed in constant time.
+
 namespace pjos {
 
     namespace internal {
@@ -139,7 +146,7 @@ namespace pjos {
         Literal::UInt num_of_variables{0};
     };
 
-    class FormulaBuilder {
+    class FormulaBuilder { // Helper to build formulas for literal stream
      public:
         FormulaBuilder(Formula &);
         FormulaBuilder(const FormulaBuilder &) = delete;

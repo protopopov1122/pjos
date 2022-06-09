@@ -15,6 +15,13 @@
 #include <iostream>
 #include <type_traits>
 
+// Output formatting functions for solver classes.
+// These are isolated from the main class code to avoid
+// mixing up internal data management and pretty-printing code.
+// Additional level of indirectness (Format functions instead
+// of direct operator<< overloads) is used to permit more flexible
+// parameterized formatting.
+
 namespace pjos {
 
     namespace internal {

@@ -8,7 +8,12 @@
 
 #include "pjos/BaseSolver.h"
 
-// This file contains specific implementation of SAT solvers for DPLL algorithm
+// Simple SAT solver implementing DPLL algorithm.
+// Solver has most optimizations turned off and is inteded to be
+// used as a baseline which contains (hopefully) less bugs than
+// more sophisticated solvers. DPLL solver is available in two
+// variants which differ in whether the underlying formula is intended to be
+// modified after solver construction.
 
 namespace pjos {
 

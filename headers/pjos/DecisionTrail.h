@@ -11,11 +11,19 @@
 #include <optional>
 #include <vector>
 
+// The decision trail keeps track of decisions, assumptions and propagations
+// that happened in the process of solving. Each assignment has associated
+// assignment information (variable and value), reason or level (number of decisions
+// prior to the assignment). Decision trail primarly works as a stack, however
+// can also be addressed in read-only mode for analysis purposes.
+// Whenever the number of variables in the formula changes,
+// decision trail needs to be notified about the change.
+
 namespace pjos {
 
     class DecisionTrail {
      public:
-        using Reason = std::int64_t;
+        using Reason = std::int_fast64_t;
         struct Entry {
             Entry(Literal::UInt, VariableAssignment, Reason, std::size_t);
 
@@ -47,7 +55,7 @@ namespace pjos {
         void SetNumOfVariables(std::size_t);
         void Reset();
 
-        const Entry *Find(Literal::UInt) const;
+        const Entry *Find(Literal::UInt) const; // Find whether decision trail contains assignment of a variable
 
         inline std::size_t Length() const {
             return this->trail.size();
@@ -57,10 +65,12 @@ namespace pjos {
             return this->trail[index];
         }
 
-        static constexpr Reason ReasonAssumption{-3};
-        static constexpr Reason ReasonPropagation{-2};
-        static constexpr Reason ReasonDecision{-1};
+        // Assignment reason
+        static constexpr Reason ReasonAssumption{-3};  // For assumptions that were provided by the user
+        static constexpr Reason ReasonPropagation{-2}; // For propagations without any specific reference to reason clause
+        static constexpr Reason ReasonDecision{-1}; // For decisions made by solver
 
+        // Other non-negative reasons are considered to be reference to clauses
         static constexpr bool IsPropagatedFromClause(Reason reason) {
             return reason >= 0;
         }

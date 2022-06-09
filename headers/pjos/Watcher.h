@@ -9,6 +9,11 @@
 #include "pjos/Clause.h"
 #include "pjos/Assignment.h"
 
+// Watchers implement watched literal concept.
+// Purpose of watcher is avoiding frequent clause rescans on assignments.
+// Instead, it keeps track of current clause status and two literals
+// that are representative of the clause.
+
 namespace pjos {
 
     enum class ClauseStatus {
@@ -37,8 +42,10 @@ namespace pjos {
             return this->watched_literals;
         }
 
-        void Update(const Assignment &, Literal::UInt, VariableAssignment);
-        void Rescan(const Assignment &);
+        void Update(const Assignment &, Literal::UInt, VariableAssignment); // Perform incremental update of clause status
+                                                                            // The method needs to be called on every update of assignment
+                                                                            // which involves the clause, otherwise full rescan is needed.
+        void Rescan(const Assignment &); // Perform full clause rescan and update state
 
      private:
         std::int64_t FindUnassigned(const Assignment &, std::int64_t);

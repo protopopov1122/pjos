@@ -107,25 +107,25 @@ static bool parse_options(int argc, char * const * argv, Options &options) {
                 return true;
             
             case 'h':
-                std::cout << PJOS_IDENTIFIER << ' ' << PJOS_VERSION << std::endl;
-                std::cout << "Usage: " << argv[0] << " [options]" << " [DIMACS file]" << std::endl;
-                std::cout << "If no DIMACS file is specified, stdin will be used. Options:" << std::endl;
-                std::cout << "\t-a,--assume L\tAdd literal L to assumptions" << std::endl;
-                std::cout << "\t-q,--quiet\tSuppress auxilary information" << std::endl;
-                std::cout << "\t-l,--learnts\tPrint learned clauses (available only for CDCL solver)" << std::endl;
-                std::cout << "\t-n,--no-model\tDo not print satisfying assignment" << std::endl;
-                std::cout << "\t-D,--use-dpll\tUse DPLL solver instead of CDCL" << std::endl;
-                std::cout << "\t-s,--set param\tSet solver parameter (see below)" << std::endl;
-                std::cout << "\t-v,--version\tPrint version information" << std::endl;
-                std::cout << "\t-h,--help\tPrint this help" << std::endl << std::endl;
-                std::cout << "Supported CDCL solver parameters:" << std::endl;
-                std::cout << "\tevsids-decay-rate=real number\t\tEVSIDS heuristic exponent" << std::endl;
-                std::cout << "\tevsids-rescore-at=real number\t\tEVSIDS heuristic rescoring threshold" << std::endl;
-                std::cout << "\tevsids-init-increment=real number\tEVSIDS heuristic initial increment" << std::endl;
-                std::cout << "\tcdcl-phase-saving=on|off\t\tEnable CDCL phase saving" << std::endl;
-                std::cout << "\tcdcl-pure-literal-elim=on|off\t\tEnable CDCL pure literal elimination" << std::endl << std::endl;
-                std::cout << "Author: Jevgenijs Protopopovs <jprotopopov1122@gmail.com>" << std::endl;
-                std::cout << "URL: <https://github.com/protopopov1122/pjos>" << std::endl;
+                std::cout << PJOS_IDENTIFIER << ' ' << PJOS_VERSION << std::endl
+                          << "Usage: " << argv[0] << " [options]" << " [DIMACS file]" << std::endl
+                          << "If no DIMACS file is specified, stdin will be used. Options:" << std::endl
+                          << "\t-a,--assume L\tAdd literal L to assumptions" << std::endl
+                          << "\t-q,--quiet\tSuppress auxilary information" << std::endl
+                          << "\t-l,--learnts\tPrint learned clauses (available only for CDCL solver)" << std::endl
+                          << "\t-n,--no-model\tDo not print satisfying assignment" << std::endl
+                          << "\t-D,--use-dpll\tUse DPLL solver instead of CDCL" << std::endl
+                          << "\t-s,--set param\tSet solver parameter (see below)" << std::endl
+                          << "\t-v,--version\tPrint version information" << std::endl
+                          << "\t-h,--help\tPrint this help" << std::endl << std::endl
+                          << "Supported CDCL solver parameters:" << std::endl
+                          << "\tevsids-decay-rate=real number\t\tEVSIDS heuristic exponent" << std::endl
+                          << "\tevsids-rescore-at=real number\t\tEVSIDS heuristic rescoring threshold" << std::endl
+                          << "\tevsids-init-increment=real number\tEVSIDS heuristic initial increment" << std::endl
+                          << "\tcdcl-phase-saving=on|off\t\tEnable CDCL phase saving" << std::endl
+                          << "\tcdcl-pure-literal-elim=on|off\t\tEnable CDCL pure literal elimination" << std::endl << std::endl
+                          << "Author: Jevgenijs Protopopovs <jprotopopov1122@gmail.com>" << std::endl
+                          << "URL: <https://github.com/protopopov1122/pjos>" << std::endl;
                 return true;
 
             default:
