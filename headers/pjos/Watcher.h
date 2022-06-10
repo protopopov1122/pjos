@@ -42,7 +42,7 @@ namespace pjos {
             return this->watched_literals;
         }
 
-        void Update(const Assignment &, Literal::UInt, VariableAssignment); // Perform incremental update of clause status
+        void Update(const Assignment &, Literal::UInt, VariableAssignment, bool); // Perform incremental update of clause status
                                                                             // The method needs to be called on every update of assignment
                                                                             // which involves the clause, otherwise full rescan is needed.
         void Rescan(const Assignment &); // Perform full clause rescan and update state

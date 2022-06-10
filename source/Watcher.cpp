@@ -24,39 +24,36 @@ namespace pjos {
         }
     }
 
-    void Watcher::Update(const Assignment &assn, Literal::UInt assigned_variable, VariableAssignment var_assignment) { // Incremental rescan of clause
+    void Watcher::Update(const Assignment &assn, Literal::UInt assigned_variable, VariableAssignment var_assignment, bool satisfies_clause) { // Incremental rescan of clause
 #ifdef PJOS_HOTPATH_PARAM_CHECKS
         if (assn.NumOfVariables() < this->clause.NumOfVariables()) {
             throw SatError{"Provided assignment does not cover all clause literals"};
         }
 #endif
 
-        if (this->status != ClauseStatus::Satisfied &&
-            var_assignment != VariableAssignment::Unassigned &&
+        if (satisfies_clause &&
+             this->status != ClauseStatus::Satisfied &&
             (this->watched_literals.first == -1 || assigned_variable != this->clause[this->watched_literals.first].Variable()) &&
             (this->watched_literals.second == -1 || assigned_variable != this->clause[this->watched_literals.second].Variable())) { // Watcher is being updated due to new variable assignment
-                                                                // which could potentially lead to satisfied clause
+                                                                                                                                    // which satisfied the clause
             auto literal_iter = this->clause.FindLiteral(Literal{assigned_variable, var_assignment}); // Look for a literal in a clause that could be satisfied by the new assignment
-            auto literal_index = literal_iter != this->clause.end()
-                ? std::distance(this->clause.begin(), literal_iter)
-                : -1;
-            if (literal_index != -1) { // Assigned variable satisfied the clause. Watch corresponding literal,
-                                        // if it's not already watched
-                if (!this->IsSatisfied(assn, this->watched_literals.first)) { 
-                    this->watched_literals.second = this->watched_literals.first;
-                    this->watched_literals.first = literal_index;
-                } else if (!this->IsSatisfied(assn, this->watched_literals.second)) {
-                    this->watched_literals.second = literal_index;
-                }
+            assert(literal_iter != this->clause.end());
+            auto literal_index = std::distance(this->clause.begin(), literal_iter);
+            if (!this->IsSatisfied(assn, this->watched_literals.first)) { 
+                this->watched_literals.second = this->watched_literals.first;
+                this->watched_literals.first = literal_index;
+            } else if (!this->IsSatisfied(assn, this->watched_literals.second)) {
+                this->watched_literals.second = literal_index;
             }
         }
 
-        if (this->IsUnsatisfied(assn, this->watched_literals.first)) { // If the first watched literal is false, find an unassigned one
+        if (!satisfies_clause && this->IsUnsatisfied(assn, this->watched_literals.first)) { // If the first watched literal is false, find an unassigned one
             this->watched_literals.first = this->FindUnassigned(assn, -1);
         }
 
-        if (this->watched_literals.second == this->watched_literals.first ||
-            this->IsUnsatisfied(assn, this->watched_literals.second)) { // If the second watched literal is false, or equal the first, find an unassinged one
+        if (!satisfies_clause &&
+            (this->watched_literals.second == this->watched_literals.first ||
+            this->IsUnsatisfied(assn, this->watched_literals.second))) { // If the second watched literal is false, or equal the first, find an unassinged one
             this->watched_literals.second = this->FindUnassigned(assn, this->watched_literals.first);
         }
 
