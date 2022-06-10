@@ -140,6 +140,7 @@ namespace pjos {
 
         const ClauseView &AppendClause(Clause);
         bool RemoveClause(std::size_t);
+        void Clear();
 
      private:
         std::vector<Clause> clauses{};

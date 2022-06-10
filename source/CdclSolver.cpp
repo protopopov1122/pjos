@@ -15,6 +15,10 @@ namespace pjos {
     CdclSolver::CdclSolver(const Heuristics::ScoringParameters &scoring)
         : CdclSolver::CdclSolver(Formula{}, scoring) {}
 
+    CdclSolver::~CdclSolver() {
+        this->owned_formula.Clear();
+    }
+
     CdclSolver::CdclSolver(Formula formula, const Heuristics::ScoringParameters &scoring)
         : ModifiableSolverBase::ModifiableSolverBase(std::move(formula)),
           BaseSolver::BaseSolver{this->owned_formula},
@@ -166,7 +170,7 @@ namespace pjos {
         assert(trail_entry.level == this->trail.Level());
         assert(backjump_level < this->trail.Level());
 
-        return std::make_pair(learned_clause.Make(), backjump_level);
+        return std::make_pair(learned_clause.Make(this->literal_allocator), backjump_level);
     }
 
     CdclSolver::AnalysisTrackState &CdclSolver::AnalysisTrackOf(Literal::UInt variable) {

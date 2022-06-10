@@ -8,6 +8,7 @@
 
 #include "pjos/BaseSolver.h"
 #include "pjos/Heuristics.h"
+#include "pjos/Allocator.h"
 #include <algorithm>
 #include <unordered_set>
 #include <vector>
@@ -29,7 +30,7 @@ namespace pjos {
         CdclSolver(const CdclSolver &) = default;
         CdclSolver(CdclSolver &&) = default;
 
-        ~CdclSolver() = default;
+        ~CdclSolver();
 
         CdclSolver &operator=(const CdclSolver &) = default;
         CdclSolver &operator=(CdclSolver &&) = default;
@@ -131,6 +132,7 @@ namespace pjos {
         ClauseBuilder learned_clause{};
         Heuristics evsids;
         Assignment saved_phases;
+        LiteralStackAllocator<> literal_allocator{};
         std::unordered_set<Literal> final_conflict;
         std::function<void(const ClauseView &)> learned_clause_fn;
     };

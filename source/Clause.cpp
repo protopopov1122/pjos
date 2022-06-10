@@ -40,20 +40,26 @@ namespace pjos {
         std::swap(c1.clause_length, c2.clause_length);
         std::swap(c1.num_of_variables, c2.num_of_variables);
     }
+    
+    void Clause::LiteralsDeleter::operator()(Literal literals[]) const {
+        if (this->owner) {
+            delete[] literals;
+        }
+    }
 
-    Clause::Clause(std::unique_ptr<Literal[]> clause, std::size_t clause_length, Literal::UInt num_of_variables)
+    Clause::Clause(std::unique_ptr<Literal[], LiteralsDeleter> clause, std::size_t clause_length, Literal::UInt num_of_variables)
         : ClauseView::ClauseView{clause.get(), clause_length, num_of_variables}, clause{std::move(clause)} {}
     
     Clause::Clause(const ClauseView &other)
         : ClauseView{nullptr, other.Length(), other.NumOfVariables()}, clause{nullptr} {
         
-        this->clause = std::make_unique<Literal[]>(other.Length());
+        this->clause = std::unique_ptr<Literal[], LiteralsDeleter>(new Literal[other.Length()], LiteralsDeleter{true});
         this->ClauseView::clause = this->clause.get();
         std::copy_n(other.begin(), this->clause_length, this->clause.get());
     }
 
     Clause &Clause::operator=(const Clause &other) {
-        this->clause = std::make_unique<Literal[]>(other.clause_length);
+        this->clause = std::unique_ptr<Literal[], LiteralsDeleter>(new Literal[other.clause_length], LiteralsDeleter{true});
         this->ClauseView::clause = this->clause.get();
         this->clause_length = other.clause_length;
         this->num_of_variables = other.num_of_variables;
@@ -80,11 +86,14 @@ namespace pjos {
         return *this;
     }
 
+    struct DefaultLiteralAllocator {
+        auto operator()(std::size_t length) const {
+            return std::unique_ptr<Literal[], Clause::LiteralsDeleter>(new Literal[length], Clause::LiteralsDeleter{true});
+        }
+    };
+
     Clause ClauseBuilder::Make() {
-        auto clause_literals = std::make_unique<Literal[]>(this->literals.size());
-        std::copy(this->literals.begin(), this->literals.end(), clause_literals.get());
-        auto clause = Clause{std::move(clause_literals), this->literals.size(), this->num_of_variables};
-        this->Reset();
-        return clause;
+        static DefaultLiteralAllocator allocator{};
+        return this->Make(allocator);
     }
 }

@@ -77,6 +77,12 @@ namespace pjos {
 
     class Clause : public ClauseView { // Clause owning it's own memory
      public:
+        struct LiteralsDeleter {
+            bool owner;
+
+            void operator()(Literal[]) const;
+        };
+
         Clause(const ClauseView &);
         Clause(Clause &&) = default;
 
@@ -93,9 +99,9 @@ namespace pjos {
         friend class ClauseBuilder;
 
      private:
-        Clause(std::unique_ptr<Literal[]>, std::size_t, Literal::UInt);
+        Clause(std::unique_ptr<Literal[], LiteralsDeleter>, std::size_t, Literal::UInt);
 
-        std::unique_ptr<Literal[]> clause;
+        std::unique_ptr<Literal[], LiteralsDeleter> clause;
     };
 
     class ClauseBuilder { // Helper class for building clauses.
@@ -115,6 +121,15 @@ namespace pjos {
         ClauseBuilder &Add(Literal);
         ClauseBuilder &Reset();
         Clause Make();
+
+        template <typename T>
+        Clause Make(T &allocator) {
+            auto clause_literals = allocator(this->literals.size());
+            std::copy(this->literals.begin(), this->literals.end(), clause_literals.get());
+            auto clause = Clause{std::move(clause_literals), this->literals.size(), this->num_of_variables};
+            this->Reset();
+            return clause;
+        }
 
      private:
         std::unordered_set<Literal> literals;

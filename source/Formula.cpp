@@ -31,6 +31,10 @@ namespace pjos {
         }
     }
 
+    void Formula::Clear() {
+        this->clauses.clear();
+    }
+
     FormulaBuilder::FormulaBuilder(Formula &formula)
         : formula{formula}, clause_builder{}, new_clause{true} {}
 
