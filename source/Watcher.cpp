@@ -31,33 +31,50 @@ namespace pjos {
         }
 #endif
 
-        if (satisfies_clause &&
-             this->status != ClauseStatus::Satisfied &&
-            (this->watched_literals.first == -1 || assigned_variable != this->clause[this->watched_literals.first].Variable()) &&
-            (this->watched_literals.second == -1 || assigned_variable != this->clause[this->watched_literals.second].Variable())) { // Watcher is being updated due to new variable assignment
-                                                                                                                                    // which satisfied the clause
-            auto literal_iter = this->clause.FindLiteral(Literal{assigned_variable, var_assignment}); // Look for a literal in a clause that could be satisfied by the new assignment
-            assert(literal_iter != this->clause.end());
-            auto literal_index = std::distance(this->clause.begin(), literal_iter);
-            if (!this->IsSatisfied(assn, this->watched_literals.first)) { 
-                this->watched_literals.second = this->watched_literals.first;
-                this->watched_literals.first = literal_index;
-            } else if (!this->IsSatisfied(assn, this->watched_literals.second)) {
-                this->watched_literals.second = literal_index;
+        if (satisfies_clause) {
+            if (this->status != ClauseStatus::Satisfied &&
+                (this->watched_literals.first == -1 || assigned_variable != this->clause[this->watched_literals.first].Variable()) &&
+                (this->watched_literals.second == -1 || assigned_variable != this->clause[this->watched_literals.second].Variable())) { // Watcher is being updated due to new variable assignment
+                                                                                                                                        // which satisfied the clause
+                auto literal_iter = this->clause.FindLiteral(Literal{assigned_variable, var_assignment}); // Look for a literal in a clause that could be satisfied by the new assignment
+                assert(literal_iter != this->clause.end());
+                auto literal_index = std::distance(this->clause.begin(), literal_iter);
+                if (!this->IsSatisfied(assn, this->watched_literals.first)) { 
+                    this->watched_literals.second = this->watched_literals.first;
+                    this->watched_literals.first = literal_index;
+                } else if (!this->IsSatisfied(assn, this->watched_literals.second)) {
+                    this->watched_literals.second = literal_index;
+                }
+            }
+
+            this->status = ClauseStatus::Satisfied;
+        } else {
+            if (this->watched_literals.first != -1 && assigned_variable != this->clause[this->watched_literals.first].Variable() &&
+                this->watched_literals.second != -1 && assigned_variable != this->clause[this->watched_literals.second].Variable()) {
+                return;
+            }
+            
+            if (this->IsUnsatisfied(assn, this->watched_literals.first)) { // If the first watched literal is false, find an unassigned one
+                this->watched_literals.first = this->FindUnassigned(assn, -1);
+            }
+
+            if (this->watched_literals.second == this->watched_literals.first ||
+                this->IsUnsatisfied(assn, this->watched_literals.second)) { // If the second watched literal is false, or equal the first, find an unassinged one
+                this->watched_literals.second = this->FindUnassigned(assn, this->watched_literals.first);
+            }
+
+            if (this->status == ClauseStatus::Satisfied &&
+                (this->IsSatisfied(assn, this->watched_literals.first) ||
+                this->IsSatisfied(assn, this->watched_literals.second))) { // One of watched literals satisfies the clause under current assignment
+                this->status = ClauseStatus::Satisfied;
+            } else if (this->watched_literals.second != -1) { // There are two unassigned literals
+                this->status = ClauseStatus::Undecided;
+            } else if (this->watched_literals.first != -1) { // There is one unassigned literal
+                this->status = ClauseStatus::Unit;
+            } else { // There are no unassigned literals
+                this->status = ClauseStatus::Unsatisfied;
             }
         }
-
-        if (!satisfies_clause && this->IsUnsatisfied(assn, this->watched_literals.first)) { // If the first watched literal is false, find an unassigned one
-            this->watched_literals.first = this->FindUnassigned(assn, -1);
-        }
-
-        if (!satisfies_clause &&
-            (this->watched_literals.second == this->watched_literals.first ||
-            this->IsUnsatisfied(assn, this->watched_literals.second))) { // If the second watched literal is false, or equal the first, find an unassinged one
-            this->watched_literals.second = this->FindUnassigned(assn, this->watched_literals.first);
-        }
-
-        this->UpdateStatus(assn);
 
 #ifdef PJOS_DEBUG_VALIDATIONS_ENABLE
         Watcher clone{*this};
