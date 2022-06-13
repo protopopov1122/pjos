@@ -13,3 +13,4 @@ python "$SCRIPT_DIR/generate_test.py" "$SAT_SOLVER" 1000 30 count 7 9 3 5
 python "$SCRIPT_DIR/generate_test.py" "$SAT_SOLVER" 50000 30 random 3 10 50
 python "$SCRIPT_DIR/generate_test.py" "$SAT_SOLVER" 1000 30 random 4 10 100
 python "$SCRIPT_DIR/generate_test.py" "$SAT_SOLVER" 1000 30 random 4 12 130
+python "$SCRIPT_DIR/naive_random_test.py" "$SAT_SOLVER" 50 100 10 100000 3 

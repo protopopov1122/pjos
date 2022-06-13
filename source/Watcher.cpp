@@ -32,11 +32,12 @@ namespace pjos {
 #endif
 
         if (satisfies_clause) {
+            Literal assigned_literal{assigned_variable, var_assignment};
             if (this->status != ClauseStatus::Satisfied &&
-                (this->watched_literals.first == -1 || assigned_variable != this->clause[this->watched_literals.first].Variable()) &&
-                (this->watched_literals.second == -1 || assigned_variable != this->clause[this->watched_literals.second].Variable())) { // Watcher is being updated due to new variable assignment
+                (this->watched_literals.first == -1 || assigned_literal != this->clause[this->watched_literals.first]) &&
+                (this->watched_literals.second == -1 || assigned_literal != this->clause[this->watched_literals.second])) { // Watcher is being updated due to new variable assignment
                                                                                                                                         // which satisfied the clause
-                auto literal_iter = this->clause.FindLiteral(Literal{assigned_variable, var_assignment}); // Look for a literal in a clause that could be satisfied by the new assignment
+                auto literal_iter = this->clause.FindLiteral(assigned_literal); // Look for a literal in a clause that could be satisfied by the new assignment
                 assert(literal_iter != this->clause.end());
                 auto literal_index = std::distance(this->clause.begin(), literal_iter);
                 if (!this->IsSatisfied(assn, this->watched_literals.first)) { 
@@ -79,7 +80,9 @@ namespace pjos {
 #ifdef PJOS_DEBUG_VALIDATIONS_ENABLE
         Watcher clone{*this};
         clone.Rescan(assn);
-        assert(this->status == clone.status);
+        if (this->status != clone.status) {
+            std::terminate();
+        }
 #endif
     }
 
