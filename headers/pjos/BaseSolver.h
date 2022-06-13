@@ -362,11 +362,14 @@ namespace pjos {
 
         void UpdateWatchers(Literal::UInt variable, VariableAssignment assn) { // To be called whenever a variable gets assigned to update all affected watchers
             auto &var_index = this->VariableIndex(variable);
+            bool satisfies_affected_watcher = assn == VariableAssignment::True;
             for (auto affected_watcher : var_index.positive_clauses) {
-                this->watchers[affected_watcher].Update(this->assignment, variable, assn, assn == VariableAssignment::True);
+                this->watchers[affected_watcher].Update(this->assignment, variable, assn, satisfies_affected_watcher);
             }
+
+            satisfies_affected_watcher = assn == VariableAssignment::False;
             for (auto affected_watcher : var_index.negative_clauses) {
-                this->watchers[affected_watcher].Update(this->assignment, variable, assn, assn == VariableAssignment::False);
+                this->watchers[affected_watcher].Update(this->assignment, variable, assn, satisfies_affected_watcher);
             }
         }
 
